@@ -5,8 +5,9 @@ package rabbitmq
 
 import (
 	"fmt"
-	"github.com/streadway/amqp"
 	"log"
+
+	"github.com/streadway/amqp"
 )
 
 // url格式 amqb://账号:密码@rabbitmq服务器地址:端口号/vhost名称

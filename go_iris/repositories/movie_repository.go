@@ -1,6 +1,6 @@
 package repositories
 
-import "go_iris/go_iris/datamodels"
+import "go_iris/datamodels"
 
 // 定义 movie 的 方法
 type MovieRepository interface {

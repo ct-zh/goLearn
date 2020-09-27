@@ -54,10 +54,10 @@ func ReadPath(path string) ([]string, error) {
 	return contents, nil
 }
 
-func GetFileContent(path string) ([]byte, error) {
-	myFile, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-}
+//func GetFileContent(path string) ([]byte, error) {
+//	myFile, err := os.Open(path)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//}
