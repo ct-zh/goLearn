@@ -7,7 +7,7 @@ import (
 
 //创建mysql 连接
 func NewMysqlConn() (db *sql.DB, err error) {
-	db, err = sql.Open("mysql", "root:imooc@tcp(127.0.0.1:3306)/imooc?charset=utf8")
+	db, err = sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/go_learn?charset=utf8")
 	return
 }
 
@@ -42,7 +42,7 @@ func GetResultRows(rows *sql.Rows) map[int]map[string]string {
 	//这里表示一行填充数据
 	scans := make([]interface{}, len(columns))
 	//这里scans引用vals，把数据填充到[]byte里
-	for k, _ := range vals {
+	for k := range vals {
 		scans[k] = &vals[k]
 	}
 	i := 0
