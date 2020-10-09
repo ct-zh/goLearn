@@ -19,4 +19,3 @@ func (m *MovieManager) GetMovieName() string {
 func NewMovieManager() MovieRepository {
 	return &MovieManager{}
 }
-

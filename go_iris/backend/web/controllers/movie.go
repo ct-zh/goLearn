@@ -10,10 +10,10 @@ type MovieController struct {
 }
 
 func (c *MovieController) Get() mvc.View {
-	movieRepository :=  repositories.NewMovieManager()
+	movieRepository := repositories.NewMovieManager()
 	movieService := services.NewMovieServiceManager(movieRepository)
 	return mvc.View{
-		Name:"movie/index.html",
-		Data:movieService.ShowMovieName(),
+		Name: "movie/index.html",
+		Data: movieService.ShowMovieName(),
 	}
 }
