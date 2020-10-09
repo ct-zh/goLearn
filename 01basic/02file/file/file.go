@@ -34,7 +34,7 @@ func ReadPath(path string) ([]string, error) {
 	}
 
 	if !dir.IsDir() {
-		return nil, fmt.Errorf("this path is a file, not dir")
+		return nil, fmt.Errorf("this path is a 02file, not dir")
 	}
 
 	info, err := ioutil.ReadDir(path)
