@@ -57,3 +57,12 @@ func StringToInt(s string) (int, error) {
 func StringToInt64(s string) (int64, error) {
 	return strconv.ParseInt(s, 10, 64)
 }
+
+// string 数组转 string  explode
+func ArrayToString(s []string) string {
+	return strings.Join(s, "")
+}
+
+func ByteToString(b []byte) string {
+	return string(b)
+}
