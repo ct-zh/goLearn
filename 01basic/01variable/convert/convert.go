@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// 转换成2进制的字符串
 func ToBin(n int) (result string) {
 	for ; n > 0; n /= 2 {
 		lsb := n % 2
@@ -18,14 +19,17 @@ func ToBin(n int) (result string) {
 
 // int 转换
 
+// int转换字符串
 func IntToString(i int) string {
 	return strconv.Itoa(i)
 }
 
+// int转换字符串
 func IntToString2(i int) string {
 	return fmt.Sprintf("%d", i)
 }
 
+// int64 转换字符串
 func Int64ToString(i int64) string {
 	return strconv.FormatInt(i, 10)
 }
@@ -46,6 +50,7 @@ func StringSplit(s string) []string {
 	return strings.SplitAfter(s, "")
 }
 
+// string转换byte
 func StringToByte(s string) []byte {
 	return []byte(s)
 }

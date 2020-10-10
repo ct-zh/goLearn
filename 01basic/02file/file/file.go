@@ -6,11 +6,20 @@ import (
 	"os"
 )
 
+// 获取当前目录
+func Pwd() string {
+	dir, _ := os.Getwd()
+	return dir
+}
+
+// 判断路径是否存在
+// path 绝对路径
 func IsExist(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil || os.IsExist(err)
 }
 
+// 判断路径是否是一个文件夹
 func IsDir(path string) bool {
 	dir, err := os.Stat(path)
 	if err != nil {
@@ -19,6 +28,7 @@ func IsDir(path string) bool {
 	return dir.IsDir()
 }
 
+// 判断路径是否是一个文件
 func IsFile(path string) bool {
 	file, err := os.Stat(path)
 	if err != nil {
@@ -27,6 +37,7 @@ func IsFile(path string) bool {
 	return !file.IsDir()
 }
 
+// 获取目录列表
 func ReadPath(path string) ([]string, error) {
 	dir, err := os.Stat(path)
 	if err != nil {
@@ -53,11 +64,3 @@ func ReadPath(path string) ([]string, error) {
 
 	return contents, nil
 }
-
-//func GetFileContent(path string) ([]byte, error) {
-//	myFile, err := os.Open(path)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//}

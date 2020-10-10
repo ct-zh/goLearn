@@ -34,3 +34,11 @@ func XmlEncodeAndDecode(s interface{}, save interface{}) error {
 
 	return nil
 }
+
+func UrlEncode(s string) string {
+	return ""
+}
+
+func UrlDecode(s string) string {
+	return ""
+}
