@@ -25,18 +25,18 @@ type ProductManage struct {
 }
 
 // 检测数据库连接
-func (p ProductManage) Conn() (err error) {
+func (p ProductManage) Conn() error {
 	if p.dbConn == nil {
 		mysql, err := common.NewMysqlConn()
 		if err != nil {
-			return
+			return err
 		}
 		p.dbConn = mysql
 	}
 	if p.table == "" {
 		p.table = "product"
 	}
-	return
+	return nil
 }
 
 // 插入一条数据

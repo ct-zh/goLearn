@@ -1,4 +1,4 @@
-package backend
+package main
 
 import (
 	"context"
@@ -25,11 +25,11 @@ func main() {
 
 	// 4.  设置模版
 	//app.StaticWeb("/assets", "./backend/web/assets")
+	app.HandleDir("/assets", "./backend/web/assets")
 
 	// 5. 异常跳转
 	app.OnAnyErrorCode(func(context iris.Context) {
-		context.ViewData("message",
-			context.Values().GetStringDefault("message", "访问页面出错"))
+		context.ViewData("message", context.Values().GetStringDefault("message", "访问页面出错"))
 		context.ViewLayout("")
 		context.View("shared/error.html")
 	})
@@ -43,7 +43,6 @@ func main() {
 	defer cancel()
 
 	// 注册控制器
-	//mvc.New(app.Party("/hello")).Handle(new(controllers.MovieController))
 	productRepository := repositories.NewProductManage("product", db)
 	productService := services.NewProductService(productRepository)
 	productParty := app.Party("/product")
