@@ -16,6 +16,7 @@ type IProduct interface {
 	Update(product *datamodels.Product) error
 	SelectByKey(int64) (*datamodels.Product, error)
 	SelectAll() ([]*datamodels.Product, error)
+	TestFunc() string
 }
 
 //[duck typing] 实现IProduct的接口
@@ -160,6 +161,10 @@ func (p ProductManage) SelectAll() (products []*datamodels.Product, err error) {
 		products = append(products, product)
 	}
 	return
+}
+
+func (p ProductManage) TestFunc() string {
+	return "Test - productManage"
 }
 
 // new instance
