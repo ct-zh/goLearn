@@ -1,2 +1,4 @@
 .idea
 /go_iris/backend/web/assets/
+/test/
+.DS_Store
