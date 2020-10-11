@@ -24,8 +24,8 @@ func main() {
 	app.RegisterView(template)
 
 	// 4.  设置模版
-	//app.StaticWeb("/assets", "./backend/web/assets")
-	app.HandleDir("/assets", "./backend/web/assets")
+	// 旧版本的方法： app.StaticWeb("/assets", "./backend/web/assets")
+	app.HandleDir("/assets", iris.Dir("./backend/web/assets"))
 
 	// 5. 异常跳转
 	app.OnAnyErrorCode(func(context iris.Context) {
