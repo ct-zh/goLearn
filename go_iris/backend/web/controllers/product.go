@@ -11,7 +11,7 @@ import (
 
 type ProductController struct {
 	Ctx     iris.Context
-	Service services.ProductService
+	Service services.IProductService
 }
 
 func (p *ProductController) GetAll() mvc.View {
@@ -19,7 +19,7 @@ func (p *ProductController) GetAll() mvc.View {
 	return mvc.View{
 		Name: "product/view.html",
 		Data: iris.Map{
-			"products": products,
+			"productArray": products,
 		},
 	}
 }
