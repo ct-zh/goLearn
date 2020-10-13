@@ -92,13 +92,13 @@ func (p ProductManage) Update(product *datamodels.Product) (err error) {
 		return
 	}
 
-	if product.Id <= 0 {
+	if product.ID <= 0 {
 		return fmt.Errorf("id is invaild")
 	}
 
 	mySql := `UPDATE product set 
 productName=?, productNum=?, productImage=?, productUrl=? 
-where id=` + strconv.FormatInt(product.Id, 10)
+where id=` + strconv.FormatInt(product.ID, 10)
 	stmt, err := p.dbConn.Prepare(mySql)
 	if err != nil {
 		return
