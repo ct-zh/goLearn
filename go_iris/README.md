@@ -1,3 +1,7 @@
-基于iris框架的简单抢购程序
+基于iris框架的并发抢购程序
 
-> iris github: https://github.com/kataras/iris
+> <a href="https://github.com/kataras/iris"> iris github</a>
+
+1. restful api
+2. 使用rabbitMQ队列
+3. 前端静态化
