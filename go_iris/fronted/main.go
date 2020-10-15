@@ -1,7 +1,15 @@
 package main
 
 import (
+	"context"
 	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/mvc"
+	"github.com/kataras/iris/v12/sessions"
+	"go_iris/common"
+	"go_iris/fronted/web/controllers"
+	"go_iris/repositories"
+	"go_iris/services"
+	"time"
 )
 
 func main() {
@@ -12,45 +20,49 @@ func main() {
 	app.Logger().SetLevel("debug")
 
 	// 3. 注册模板
-	temp := iris.HTML("./fronted/web/views",
-		".html").Layout(
-		"shared/layout.html").Reload(true)
-	app.RegisterView(temp)
+	//temp := iris.HTML("./fronted/web/views",
+	//	".html").Layout(
+	//	"shared/layout.html").Reload(true)
+	//app.RegisterView(temp)
 
 	// 4.  设置模版
 	// 旧版本的方法： app.StaticWeb("/assets", "./fronted/web/assets")
-	app.HandleDir("/assets", iris.Dir("./fronted/web/assets"))
+	//app.HandleDir("/assets", iris.Dir("./fronted/web/assets"))
 
 	//访问生成好的html静态文件
-	app.HandleDir("/html", iris.Dir("./fronted/web/htmlProductShow"))
+	//app.HandleDir("/html", iris.Dir("./fronted/web/htmlProductShow"))
 
 	//出现异常跳转到指定页面
 	app.OnAnyErrorCode(func(ctx iris.Context) {
-		ctx.ViewData("message", ctx.Values().GetStringDefault("message", "访问页面出错"))
-		ctx.ViewLayout("")
-		ctx.View("shared/error/html")
+		_, _ = ctx.JSON(iris.Map{"code": "-1", "msg": "404 NOT FOUND"})
+		//ctx.ViewData("message", ctx.Values().GetStringDefault("message", "访问页面出错"))
+		//ctx.ViewLayout("")
+		//ctx.View("shared/error/html")
 	})
 
 	// 6. 连接数据库
-	//db, err := common.NewMysqlConn()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//sess := sessions.New(sessions.Config{
-	//	Cookie:  "AdminCookie",
-	//	Expires: 600 * time.Minute,
-	//})
-	//
-	//ctx, cancel := context.WithCancel(context.Background())
-	//defer cancel()
+	db, err := common.NewMysqlConn()
+	if err != nil {
+		panic(err)
+	}
+
+	sess := sessions.New(sessions.Config{
+		Cookie:  "AdminCookie",
+		Expires: 600 * time.Minute,
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	// 注册控制器
+	mvc.New(app.Party("/user")).Register(
+		services.NewUserService(
+			repositories.NewUserManage(db)), ctx, sess.Start,
+	).Handle(new(controllers.UserController))
 
 	app.Run(
 		iris.Addr(":12998"),
 		iris.WithoutServerError(iris.ErrServerClosed),
 		iris.WithOptimizations,
 	)
-
 }
