@@ -18,20 +18,21 @@ func main() {
 	app.Logger().SetLevel("debug")
 
 	// 3. 注册模版
-	template := iris.HTML("./backend/web/views", ".html").Layout(
-		"shared/layout.html").Reload(
-		true)
-	app.RegisterView(template)
+	//template := iris.HTML("./backend/web/views", ".html").Layout(
+	//	"shared/layout.html").Reload(
+	//	true)
+	//app.RegisterView(template)
 
 	// 4.  设置模版
 	// 旧版本的方法： app.StaticWeb("/assets", "./backend/web/assets")
-	app.HandleDir("/assets", iris.Dir("./backend/web/assets"))
+	//app.HandleDir("/assets", iris.Dir("./backend/web/assets"))
 
 	// 5. 异常跳转
 	app.OnAnyErrorCode(func(context iris.Context) {
-		context.ViewData("message", context.Values().GetStringDefault("message", "访问页面出错"))
-		context.ViewLayout("")
-		context.View("shared/error.html")
+		context.JSON(iris.Map{"code": "-1", "msg": "404 NOT FOUND"})
+		//context.ViewData("message", context.Values().GetStringDefault("message", "访问页面出错"))
+		//context.ViewLayout("")
+		//context.View("shared/error.html")
 	})
 
 	// 6. 连接数据库
@@ -43,12 +44,11 @@ func main() {
 	defer cancel()
 
 	// 注册控制器
-	productRepository := repositories.NewProductManage("product", db)
-	productService := services.NewProductService(productRepository)
-	productParty := app.Party("/product")
-	product := mvc.New(productParty)
-	product.Register(ctx, productService)
-	product.Handle(new(controllers.ProductController))
+	mvc.New(app.Party("/product")). // 注册路径 /product
+					Register( // 注册 IProductService 与 iris.context
+			ctx,
+								services.NewProductService(repositories.NewProductManage(db))).
+		Handle(new(controllers.ProductController)) // 绑定到 productController
 
 	app.Run(
 		iris.Addr("localhost:12999"),
