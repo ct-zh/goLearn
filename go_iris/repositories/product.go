@@ -63,7 +63,14 @@ func (p ProductManage) Insert(product *datamodels.Product) (productId int64, err
 		return
 	}
 
-	return result.LastInsertId()
+	id, err := result.LastInsertId()
+	if err != nil {
+		return
+	}
+
+	product.ID = id
+
+	return id, nil
 }
 
 // 删除一条数据
@@ -79,10 +86,16 @@ func (p ProductManage) Delete(id int64) bool {
 		return false
 	}
 
-	_, err = stmt.Exec(strconv.FormatInt(id, 10))
+	result, err := stmt.Exec(strconv.FormatInt(id, 10))
 	if err != nil {
 		return false
 	}
+
+	effect, err := result.RowsAffected()
+	if err != nil || effect <= 0 {
+		return false
+	}
+
 	return true
 }
 
