@@ -9,5 +9,6 @@
 
 ## todo
 1. repository 有关db的逻辑优化
-2. 研究common的代码 
-3. 所有接口转成restful api格式
+2. common的代码 
+3. 后台接口用API格式，前端商品页面展示
+
