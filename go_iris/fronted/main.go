@@ -20,24 +20,23 @@ func main() {
 	app.Logger().SetLevel("debug")
 
 	// 3. 注册模板
-	//temp := iris.HTML("./fronted/web/views",
-	//	".html").Layout(
-	//	"shared/layout.html").Reload(true)
-	//app.RegisterView(temp)
+	temp := iris.HTML("./fronted/web/views",
+		".html").Layout(
+		"shared/layout.html").Reload(true)
+	app.RegisterView(temp)
 
 	// 4.  设置模版
 	// 旧版本的方法： app.StaticWeb("/assets", "./fronted/web/assets")
-	//app.HandleDir("/assets", iris.Dir("./fronted/web/assets"))
+	app.HandleDir("/assets", iris.Dir("./fronted/web/assets"))
 
 	//访问生成好的html静态文件
 	//app.HandleDir("/html", iris.Dir("./fronted/web/htmlProductShow"))
 
 	//出现异常跳转到指定页面
 	app.OnAnyErrorCode(func(ctx iris.Context) {
-		_, _ = ctx.JSON(iris.Map{"code": "-1", "msg": "404 NOT FOUND"})
-		//ctx.ViewData("message", ctx.Values().GetStringDefault("message", "访问页面出错"))
-		//ctx.ViewLayout("")
-		//ctx.View("shared/error/html")
+		ctx.ViewData("message", ctx.Values().GetStringDefault("message", "访问页面出错"))
+		ctx.ViewLayout("")
+		ctx.View("shared/error/html")
 	})
 
 	// 6. 连接数据库
