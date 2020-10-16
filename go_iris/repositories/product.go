@@ -168,9 +168,9 @@ func (p ProductManage) TestFunc() string {
 }
 
 // new instance
-func NewProductManage(table string, mysql *sql.DB) IProduct {
+func NewProductManage(mysql *sql.DB) IProduct {
 	return &ProductManage{
-		table:  table,
+		table:  "product",
 		dbConn: mysql,
 	}
 }
