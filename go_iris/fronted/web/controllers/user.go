@@ -6,6 +6,7 @@ import (
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/kataras/iris/v12/sessions"
 	"go_iris/datamodels"
+	"go_iris/encrypt"
 	"go_iris/services"
 	"go_iris/tool"
 	"strconv"
@@ -74,7 +75,13 @@ func (c *UserController) PostLogin() mvc.Response {
 	}
 
 	tool.GlobalCookie(c.Ctx, "uid", strconv.FormatInt(user.ID, 10))
-	c.Session.Set("userId", strconv.FormatInt(user.ID, 10))
+
+	uidByte := []byte(strconv.FormatInt(user.ID, 10))
+	uidString, err := encrypt.EnPwdCode(uidByte)
+	if err != nil {
+		c.Ctx.Application().Logger().Debug(err)
+	}
+	tool.GlobalCookie(c.Ctx, "uid", uidString)
 
 	return mvc.Response{
 		Path: "/product/",
