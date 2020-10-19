@@ -56,8 +56,15 @@ func main() {
 	// 注册控制器
 	mvc.New(app.Party("/user")).Register(
 		services.NewUserService(
-			repositories.NewUserManage(db)), ctx, sess.Start,
+			repositories.NewUserManage(db)),
+		ctx, sess.Start,
 	).Handle(new(controllers.UserController))
+
+	mvc.New(app.Party("/product")).Register(
+		services.NewProductService(
+			repositories.NewProductManage(db)),
+		ctx, sess.Start,
+	).Handle(new(controllers.ProductController))
 
 	app.Run(
 		iris.Addr(":12998"),
