@@ -16,7 +16,7 @@ type IProduct interface {
 	Update(product *datamodels.Product) error
 	SelectByKey(int64) (*datamodels.Product, error)
 	SelectAll() ([]*datamodels.Product, error)
-	TestFunc() string
+	SubProductNum(productId int64) error
 }
 
 //[duck typing] 实现IProduct的接口
@@ -26,7 +26,7 @@ type ProductManage struct {
 }
 
 // 检测数据库连接
-func (p ProductManage) Conn() error {
+func (p *ProductManage) Conn() error {
 	if p.dbConn == nil {
 		mysql, err := common.NewMysqlConn()
 		if err != nil {
@@ -41,7 +41,7 @@ func (p ProductManage) Conn() error {
 }
 
 // 插入一条数据
-func (p ProductManage) Insert(product *datamodels.Product) (productId int64, err error) {
+func (p *ProductManage) Insert(product *datamodels.Product) (productId int64, err error) {
 	// 1. 判断连接是否存在
 	if err = p.Conn(); err != nil {
 		return
@@ -74,7 +74,7 @@ func (p ProductManage) Insert(product *datamodels.Product) (productId int64, err
 }
 
 // 删除一条数据
-func (p ProductManage) Delete(id int64) bool {
+func (p *ProductManage) Delete(id int64) bool {
 	// 1. 判断连接是否存在
 	err := p.Conn()
 	if err != nil {
@@ -100,7 +100,7 @@ func (p ProductManage) Delete(id int64) bool {
 }
 
 // 更新一条数据
-func (p ProductManage) Update(product *datamodels.Product) (err error) {
+func (p *ProductManage) Update(product *datamodels.Product) (err error) {
 	if err = p.Conn(); err != nil {
 		return
 	}
@@ -130,7 +130,7 @@ where id=` + strconv.FormatInt(product.ID, 10)
 }
 
 // 获取一条数据
-func (p ProductManage) SelectByKey(id int64) (product *datamodels.Product, err error) {
+func (p *ProductManage) SelectByKey(id int64) (product *datamodels.Product, err error) {
 	product = &datamodels.Product{}
 
 	if err = p.Conn(); err != nil {
@@ -153,7 +153,7 @@ func (p ProductManage) SelectByKey(id int64) (product *datamodels.Product, err e
 }
 
 // 获取所有数据
-func (p ProductManage) SelectAll() (products []*datamodels.Product, err error) {
+func (p *ProductManage) SelectAll() (products []*datamodels.Product, err error) {
 	if err = p.Conn(); err != nil {
 		return
 	}
@@ -176,8 +176,21 @@ func (p ProductManage) SelectAll() (products []*datamodels.Product, err error) {
 	return
 }
 
-func (p ProductManage) TestFunc() string {
-	return "Test - productManage"
+func (p *ProductManage) SubProductNum(productId int64) error {
+	if err := p.Conn(); err != nil {
+		return err
+	}
+
+	sql := "update " + p.table +
+		" set productNum=productNum-1 where id = " +
+		strconv.FormatInt(productId, 10)
+	stmt, err := p.dbConn.Prepare(sql)
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.Exec()
+	return err
 }
 
 // new instance

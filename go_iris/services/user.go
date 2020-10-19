@@ -16,7 +16,7 @@ type UserService struct {
 	Repository repositories2.IUser
 }
 
-func (u UserService) IsPwdSuccess(userName string, pwd string) (user *datamodels.User, ok bool) {
+func (u *UserService) IsPwdSuccess(userName string, pwd string) (user *datamodels.User, ok bool) {
 	user, err := u.Repository.Select(userName)
 	if err != nil {
 		return nil, false
@@ -36,7 +36,7 @@ func validatePwd(pwd string, hash string) (ok bool, err error) {
 	return true, nil
 }
 
-func (u UserService) AddUser(user *datamodels.User) (userId int64, err error) {
+func (u *UserService) AddUser(user *datamodels.User) (userId int64, err error) {
 	pwdByte, errPwd := generatePwd(user.Password)
 	if errPwd != nil {
 		return userId, errPwd
