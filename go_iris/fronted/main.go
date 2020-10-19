@@ -6,6 +6,7 @@ import (
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/kataras/iris/v12/sessions"
 	"go_iris/common"
+	"go_iris/fronted/middleware"
 	"go_iris/fronted/web/controllers"
 	"go_iris/repositories"
 	"go_iris/services"
@@ -60,7 +61,9 @@ func main() {
 		ctx, sess.Start,
 	).Handle(new(controllers.UserController))
 
-	mvc.New(app.Party("/product")).Register(
+	productParty := app.Party("/product")
+	productParty.Use(middleware.AuthConProduct)
+	mvc.New(productParty).Register(
 		services.NewProductService(
 			repositories.NewProductManage(db)),
 		ctx, sess.Start,

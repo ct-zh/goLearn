@@ -36,10 +36,6 @@ func (p *ProductController) GetOrder() mvc.View {
 		id  = p.Ctx.URLParam("id")
 		uid = p.Ctx.GetCookie("uid")
 	)
-	if uid == "" {
-		p.Ctx.Application().Logger().Error("请重新登陆")
-		p.Ctx.Redirect("user/login.html")
-	}
 
 	productId, err := strconv.Atoi(id)
 	if err != nil {
