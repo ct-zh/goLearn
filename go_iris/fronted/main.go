@@ -30,10 +30,10 @@ func main() {
 	// 旧版本的方法： app.StaticWeb("/assets", "./fronted/web/assets")
 	app.HandleDir("/assets", iris.Dir("./fronted/web/assets"))
 
-	//访问生成好的html静态文件
-	//app.HandleDir("/html", iris.Dir("./fronted/web/htmlProductShow"))
+	// 访问生成好的html静态文件
+	app.HandleDir("/html", iris.Dir("./fronted/web/htmlProductShow"))
 
-	//出现异常跳转到指定页面
+	// 出现异常跳转到指定页面
 	app.OnAnyErrorCode(func(ctx iris.Context) {
 		ctx.ViewData("message", ctx.Values().GetStringDefault("message", "访问页面出错"))
 		ctx.ViewLayout("")
