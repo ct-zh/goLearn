@@ -124,7 +124,8 @@ func (o OrderManager) SelectAll() (orderArray []*datamodels.Order, err error) {
 	if errConn := o.Conn(); errConn != nil {
 		return nil, errConn
 	}
-	sql := "Select * from " + o.table
+	sql := "Select * from `" + o.table + "`"
+
 	rows, errRows := o.dbConn.Query(sql)
 	if errRows != nil {
 		return nil, errRows
