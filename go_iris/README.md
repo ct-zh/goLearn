@@ -12,6 +12,10 @@
 4. 商品数量控制，防止超卖，增加性能
 5. web服务 => rabbitmq，防止爆库
 
+## 一致性hash算法
+用途：快速定位资源，均匀分布
+场景：分布式存储，分布式缓存，负载均衡
+
 
 ## todo
 1. repository的newInstance逻辑，db参数需要支持多种数据库
@@ -24,4 +28,7 @@
     }
     ```
 3. 后台接口加上权限验证
+
+4. `http.HandleFunc` handleFunc的格式
+
 
