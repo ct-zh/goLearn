@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
+	"time"
 
 	"encoding/json"
 	"net/url"
@@ -37,25 +38,27 @@ var rabbitMqValidate *rabbitmq.RabbitMQ
 //用来存放控制信息，
 type AccessControl struct {
 	//用来存放用户想要存放的信息
-	sourcesArray map[int]interface{}
+	sourcesArray map[int]time.Time
 	sync.RWMutex
 }
 
+// 服务器间隔时间 单位秒
+var interval = 20
+
 //创建全局变量
-var accessControl = &AccessControl{sourcesArray: make(map[int]interface{})}
+var accessControl = &AccessControl{sourcesArray: make(map[int]time.Time)}
 
 //获取制定的数据
-func (m *AccessControl) GetNewRecord(uid int) interface{} {
+func (m *AccessControl) GetNewRecord(uid int) time.Time {
 	m.RWMutex.RLock()
 	defer m.RWMutex.RUnlock()
-	data := m.sourcesArray[uid]
-	return data
+	return m.sourcesArray[uid]
 }
 
 //设置记录
 func (m *AccessControl) SetNewRecord(uid int) {
 	m.RWMutex.Lock()
-	m.sourcesArray[uid] = "hello imooc"
+	m.sourcesArray[uid] = time.Now()
 	m.RWMutex.Unlock()
 }
 
@@ -85,6 +88,23 @@ func (m *AccessControl) GetDistributedRight(req *http.Request) bool {
 
 //获取本机map，并且处理业务逻辑，返回的结果类型为bool类型
 func (m *AccessControl) GetDataFromMap(uid string) (isOk bool) {
+	uidInt, err := strconv.Atoi(uid)
+	if err != nil {
+		return false
+	}
+
+	// 服务端对请求间隔的限制，防止for循环
+	// 获取记录
+	dataRecord := m.GetNewRecord(uidInt)
+	if !dataRecord.IsZero() {
+		//
+		if dataRecord.Add(time.Duration(interval) * time.Second).After(time.Now()) {
+			return false
+		}
+	}
+	// 重新设置
+	m.SetNewRecord(uidInt)
+
 	//uidInt,err := strconv.Atoi(uid)
 	//if err !=nil {
 	//	return false
