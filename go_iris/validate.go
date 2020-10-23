@@ -62,6 +62,32 @@ func (m *AccessControl) SetNewRecord(uid int) {
 	m.RWMutex.Unlock()
 }
 
+// 黑名单
+type BlackList struct {
+	listArray map[int]bool
+	sync.RWMutex
+}
+
+var blackList = &BlackList{
+	listArray: make(map[int]bool),
+	RWMutex:   sync.RWMutex{},
+}
+
+// 获取黑名单
+func (m *BlackList) GetBlackListById(uid int) bool {
+	m.RLock()
+	defer m.RUnlock()
+	return m.listArray[uid]
+}
+
+// 设置黑名单
+func (m *BlackList) SetBlackListById(uid int) bool {
+	m.Lock()
+	defer m.Unlock()
+	m.listArray[uid] = true
+	return true
+}
+
 func (m *AccessControl) GetDistributedRight(req *http.Request) bool {
 	//获取用户UID
 	uid, err := req.Cookie("uid")
@@ -90,6 +116,11 @@ func (m *AccessControl) GetDistributedRight(req *http.Request) bool {
 func (m *AccessControl) GetDataFromMap(uid string) (isOk bool) {
 	uidInt, err := strconv.Atoi(uid)
 	if err != nil {
+		return false
+	}
+
+	// 添加黑名单
+	if blackList.GetBlackListById(uidInt) {
 		return false
 	}
 
