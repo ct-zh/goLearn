@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// 生成大小为n,元素在[rangeL,rangeR]区间的 整数数组
+// 生成元素数量为n,元素在[rangeL,rangeR]区间的 整数数组
 func GenerateRandomArray(n int, rangeL int, rangeR int) map[int]int {
 	if rangeL > rangeR {
 		return nil
