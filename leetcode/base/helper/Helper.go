@@ -1,5 +1,5 @@
 // 测试用函数
-package Hepler
+package Helper
 
 import (
 	"math/rand"
