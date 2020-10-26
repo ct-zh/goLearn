@@ -2,7 +2,7 @@ package insertionSort
 
 import (
 	"fmt"
-	Hepler "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
+	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
 	"testing"
 	"time"
 )
@@ -11,8 +11,8 @@ func TestInsertionSort_Do(t *testing.T) {
 	tests := []struct {
 		arr map[int]int
 	}{
-		{Hepler.GenerateRandomArray(100, 0, 999)},
-		{Hepler.GenerateRandomArray(10000, 0, 99999)},
+		{Helper.GenerateRandomArray(100, 0, 999)},
+		{Helper.GenerateRandomArray(10000, 0, 99999)},
 	}
 	for key, tt := range tests {
 		startTime := time.Now()
@@ -40,8 +40,8 @@ func TestInsertionSort_DoBetter(t *testing.T) {
 	tests := []struct {
 		arr map[int]int
 	}{
-		{Hepler.GenerateRandomArray(100, 0, 999)},
-		{Hepler.GenerateRandomArray(10000, 0, 99999)},
+		{Helper.GenerateRandomArray(100, 0, 999)},
+		{Helper.GenerateRandomArray(10000, 0, 99999)},
 	}
 	for key, tt := range tests {
 		startTime := time.Now()
