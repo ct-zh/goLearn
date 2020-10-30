@@ -25,10 +25,14 @@ func TestInsertionSort_Do(t *testing.T) {
 		s.Do()
 
 		// check
+		err := false
 		for i := 1; i < count; i++ {
 			if s.Arr[i-1] > s.Arr[i] {
-				t.Errorf("[%d] 排序算法有问题：\n 原始数据：   %+v \n  排序后的数据： %+v\n", key, tt.arr, s.Arr)
+				err = true
 			}
+		}
+		if err {
+			t.Errorf("[%d] 排序算法有问题：\n 原始数据：   %+v \n  排序后的数据： %+v\n", key, tt.arr, s.Arr)
 		}
 
 		end := time.Now().Sub(startTime)
@@ -54,10 +58,14 @@ func TestInsertionSort_DoBetter(t *testing.T) {
 		s.DoBetter()
 
 		// check
+		err := false
 		for i := 1; i < count; i++ {
 			if s.Arr[i-1] > s.Arr[i] {
-				t.Errorf("[%d] 排序算法有问题：\n 原始数据：   %+v \n  排序后的数据： %+v\n", key, tt.arr, s.Arr)
+				err = true
 			}
+		}
+		if err {
+			t.Errorf("[%d] 排序算法有问题：\n 原始数据：   %+v \n  排序后的数据： %+v\n", key, tt.arr, s.Arr)
 		}
 
 		end := time.Now().Sub(startTime)
