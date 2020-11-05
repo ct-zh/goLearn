@@ -21,6 +21,11 @@ func (e *Edge) Wt() Weight {
 	return e.weight
 }
 
+// 匹配 Item interface
+func (e Edge) GetValue() interface{} {
+	return e.weight
+}
+
 // 获取边里非节点x的节点
 func (e *Edge) Other(x int) int {
 	if e.a == x {
