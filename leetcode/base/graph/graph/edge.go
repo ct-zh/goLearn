@@ -1,9 +1,6 @@
 package graph
 
-type Weight interface {
-	// 比较两个权的大小
-	Compare(other Weight) int
-}
+type Weight interface{}
 
 // 有权图的边的内容
 type Edge struct {
