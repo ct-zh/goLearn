@@ -98,6 +98,17 @@ func (d *denseWeight) HasEdge(v int, w int) (bool, error) {
 	return d.g[v][w] != nil, nil
 }
 
+func (d *denseWeight) GetEdge(v int, w int) (Edge, error) {
+	if v < 0 || w < 0 {
+		return Edge{}, errors.New("参数非法")
+	}
+	if v > d.n || w > d.n {
+		return Edge{}, errors.New("参数不能大于节点数量")
+	}
+
+	return *d.g[v][w], nil
+}
+
 func (d *denseWeight) Print() {
 	for k, v := range d.g {
 		fmt.Printf("Line: %d  ", k)

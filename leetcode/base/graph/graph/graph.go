@@ -96,9 +96,9 @@ func CreateGraphByFile(filename string, gType int) Graph {
 
 // 图的迭代器
 type iterator struct {
-	g     *Graph
-	v     int
-	index int
+	g     *Graph // 图
+	v     int    // 从结点v开始迭代
+	index int    // 游标
 }
 
 // g: 迭代的图； v: 迭代开始的起点

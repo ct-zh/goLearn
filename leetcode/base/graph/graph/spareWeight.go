@@ -91,6 +91,17 @@ func (s *sparseWeight) HasEdge(v int, w int) (bool, error) {
 	return false, nil
 }
 
+func (s *sparseWeight) GetEdge(v int, w int) (Edge, error) {
+	if v < 0 || w < 0 {
+		return Edge{}, errors.New("参数非法")
+	}
+	if v > s.n || w > s.n {
+		return Edge{}, errors.New("参数不能大于节点数量")
+	}
+
+	return *s.g[v][w], nil
+}
+
 func (s *sparseWeight) Print() {
 	for key, v1 := range s.g {
 		fmt.Printf("Line:%d", key)
