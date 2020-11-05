@@ -22,6 +22,12 @@ const TypeDense = 1
 // 稀疏图 - 邻接表
 const TypeSparse = 2
 
+// 带权稠密图
+const TypeWeightDense = 3
+
+// 带权稀疏图
+const TypeWeightSparse = 4
+
 // 通过文件创建一个图的实例
 // filename: 文件路径
 // gType: 图的类型，见上面的type常量
@@ -59,11 +65,13 @@ func CreateGraphByFile(filename string, gType int) Graph {
 				if err != nil {
 					panic(err)
 				}
-			} else {
+			} else if gType == TypeSparse {
 				g, err = NewSpareGraph(n, false)
 				if err != nil {
 					panic(err)
 				}
+			} else {
+				panic("暂不支持的图的类型")
 			}
 		} else { // 其他行的内容则是各个边的信息
 			split1, err := strconv.Atoi(split[0])
