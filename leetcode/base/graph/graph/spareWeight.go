@@ -96,11 +96,16 @@ func (s *sparseWeight) GetEdge(v int, w int) (Edge, error) {
 	if v < 0 || w < 0 {
 		return Edge{}, errors.New("参数非法")
 	}
-	if v > s.n || w > s.n {
-		return Edge{}, errors.New("参数不能大于节点数量")
+	if v > s.n {
+		return Edge{}, errors.New("参数v不能大于节点数量")
 	}
 
-	return *s.g[v][w], nil
+	for _, item := range (*s).g[v] {
+		if item.Other(v) == w {
+			return *item, nil
+		}
+	}
+	return Edge{}, errors.New("没有这条边")
 }
 
 func (s *sparseWeight) Print() {
