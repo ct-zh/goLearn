@@ -69,6 +69,7 @@ func (s *sparseWeight) AddEdge(v int, w int, weight Weight) error {
 			weight: weight,
 		})
 	}
+	s.m++
 
 	return nil
 }
