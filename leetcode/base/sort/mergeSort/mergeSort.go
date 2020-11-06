@@ -27,7 +27,8 @@ func (m *MergeSort) mergeSort(start int, end int) {
 		return
 	}
 
-	mid := (start + end) / 2 // 历史上曾发生过 start + end int溢出的bug
+	//mid := (start + end) / 2 // 历史上曾发生过 start + end int溢出的bug
+	mid := (end-start)/2 + start // 所以改成end - start 的方式取中值
 	m.mergeSort(start, mid)
 	m.mergeSort(mid+1, end) // 闭区间，所以是由mid+1开始
 
