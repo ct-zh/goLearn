@@ -1,7 +1,8 @@
-package graph
+package mst
 
 import (
 	"fmt"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
 	"testing"
 )
 
@@ -11,10 +12,10 @@ func TestNewLazyPrimMst(t *testing.T) {
 		filename  string
 		graphType int
 	}{
-		{filename: "./testWeightG1.txt", graphType: TypeWeightSparse},
+		{filename: "./testWeightG1.txt", graphType: weightGraph.TypeWeightSparse},
 	}
 	for _, tt := range tests {
-		g := CreateWeightGraphByFile(tt.filename, tt.graphType)
+		g := weightGraph.CreateWeightGraphByFile(tt.filename, tt.graphType)
 
 		lazy := NewLazyPrimMst(&g)
 		fmt.Printf("Graph: \"%s\"   Weight: %v \nMst: %v\n",

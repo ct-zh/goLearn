@@ -1,4 +1,6 @@
-package graph
+package mst
+
+import "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
 
 // 最小生成树问题：（只针对带权图连通图）
 // 存在一棵树 连接了图里的所有节点,所有边的权值相加是最小的
@@ -19,11 +21,11 @@ package graph
 // 假设从最小堆里取出的是[0,7]这条边，那么将节点7也划分到切分中
 // 这样节点7对应的边也将压入堆中，再从最小堆中取出权值最小的边
 type LazyPrimMst struct {
-	g         *WeightGraph // 图
-	pq        *minHeap     // 最小堆
-	marked    []bool       // 表示该点是否被标记了，根据true和false将图划分为两个切分
-	mst       []Edge       // 最小生成树 v-1个边
-	mstWeight float64      // 最小生成树的权值
+	g         *weightGraph.WeightGraph // 图
+	pq        *minHeap                 // 最小堆
+	marked    []bool                   // 表示该点是否被标记了，根据true和false将图划分为两个切分
+	mst       []weightGraph.Edge       // 最小生成树 v-1个边
+	mstWeight float64                  // 最小生成树的权值
 }
 
 // Lazy prim 算法辅助函数
@@ -33,7 +35,7 @@ func (l *LazyPrimMst) visit(v int) {
 		return
 	}
 	l.marked[v] = true // 代表已经遍历过了
-	adj := NewWeightIter(l.g, v)
+	adj := weightGraph.NewWeightIter(l.g, v)
 
 	for i := adj.Begin(); !adj.End(); i = adj.Next() {
 		// 遍历v的所有边，如果存在边i还未标记，则写入队列pq中
@@ -43,12 +45,12 @@ func (l *LazyPrimMst) visit(v int) {
 	}
 }
 
-func NewLazyPrimMst(g *WeightGraph) *LazyPrimMst {
+func NewLazyPrimMst(g *weightGraph.WeightGraph) *LazyPrimMst {
 	l := LazyPrimMst{
 		g:      g,
 		pq:     NewMinHeap((*g).E()), // 最差的情况下所有数据都要进入堆中
 		marked: make([]bool, (*g).V()),
-		mst:    []Edge{},
+		mst:    []weightGraph.Edge{},
 	}
 
 	for i := 0; i < (*g).V(); i++ { // marked默认全部填充false
@@ -83,18 +85,18 @@ func NewLazyPrimMst(g *WeightGraph) *LazyPrimMst {
 	}
 
 	// 计算最小生成树的权值
-	l.mstWeight = l.mst[0].weight.(float64)
+	l.mstWeight = l.mst[0].Wt().(float64)
 	for i := 0; i < len(l.mst); i++ {
-		l.mstWeight += l.mst[i].weight.(float64)
+		l.mstWeight += l.mst[i].Wt().(float64)
 	}
 
 	return &l
 }
 
-func (l *LazyPrimMst) MstEdges() []Edge {
+func (l *LazyPrimMst) MstEdges() []weightGraph.Edge {
 	return l.mst
 }
 
-func (l *LazyPrimMst) Weight() Weight {
+func (l *LazyPrimMst) Weight() weightGraph.Weight {
 	return l.mstWeight
 }

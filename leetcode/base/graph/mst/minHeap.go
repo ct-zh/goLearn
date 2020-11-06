@@ -1,10 +1,12 @@
-package graph
+package mst
+
+import "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
 
 // 用于lazyPrim的最小堆
 type minHeap struct {
-	data     []Edge // 从1开始的二叉树，存储的内容是edge
-	count    int    // 堆中节点的数量
-	capacity int    // 堆的容量
+	data     []weightGraph.Edge // 从1开始的二叉树，存储的内容是edge
+	count    int                // 堆中节点的数量
+	capacity int                // 堆的容量
 }
 
 func (m *minHeap) getVal(k int) float64 {
@@ -43,11 +45,11 @@ func (m *minHeap) shiftDown(i int) {
 
 func NewMinHeap(capacity int) *minHeap {
 	m := &minHeap{
-		data:     make([]Edge, capacity+1), // 从1开始的数组
+		data:     make([]weightGraph.Edge, capacity+1), // 从1开始的数组
 		count:    0,
 		capacity: capacity,
 	}
-	m.data[0] = Edge{}
+	m.data[0] = weightGraph.Edge{}
 
 	return m
 }
@@ -60,7 +62,7 @@ func (m *minHeap) IsEmpty() bool {
 	return m.count == 0
 }
 
-func (m *minHeap) Insert(i Edge) {
+func (m *minHeap) Insert(i weightGraph.Edge) {
 	if m.count >= m.capacity {
 		panic("该堆容量已满")
 	}
@@ -70,7 +72,7 @@ func (m *minHeap) Insert(i Edge) {
 }
 
 // 推出最小值
-func (m *minHeap) ExtractMin() Edge {
+func (m *minHeap) ExtractMin() weightGraph.Edge {
 	if m.count == 0 {
 		panic("是个空堆")
 	}
