@@ -1,4 +1,4 @@
-package graph
+package weightGraph
 
 type Weight interface{}
 
@@ -35,4 +35,8 @@ func (e *Edge) Other(x int) int {
 	} else {
 		panic("x 必须是 两个节点中的一个")
 	}
+}
+
+func (e *Edge) IsNull() bool {
+	return e.weight.(int) == 0
 }
