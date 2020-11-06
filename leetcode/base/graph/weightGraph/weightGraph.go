@@ -1,4 +1,4 @@
-package graph
+package weightGraph
 
 import (
 	"bufio"
@@ -16,6 +16,12 @@ type WeightGraph interface {
 	GetEdge(v int, w int) (Edge, error)
 	Print()
 }
+
+// 带权稠密图
+const TypeWeightDense = 3
+
+// 带权稀疏图
+const TypeWeightSparse = 4
 
 // 通过文件创建带权图
 func CreateWeightGraphByFile(filename string, gType int) WeightGraph {

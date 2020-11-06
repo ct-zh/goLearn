@@ -22,12 +22,6 @@ const TypeDense = 1
 // 稀疏图 - 邻接表
 const TypeSparse = 2
 
-// 带权稠密图
-const TypeWeightDense = 3
-
-// 带权稀疏图
-const TypeWeightSparse = 4
-
 // 通过文件创建一个图的实例
 // filename: 文件路径
 // gType: 图的类型，见上面的type常量
