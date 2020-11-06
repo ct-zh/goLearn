@@ -11,6 +11,7 @@ func TestQuickSort_Do(t *testing.T) {
 	tests := []struct {
 		arr map[int]int
 	}{
+		{Helper.GenerateRandomArray(10, 0, 999)},
 		{Helper.GenerateRandomArray(100, 0, 999)},
 		{Helper.GenerateRandomArray(10000, 0, 99999)},
 	}

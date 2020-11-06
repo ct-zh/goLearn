@@ -1,6 +1,7 @@
 package quickSort
 
 import (
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/sort/insertionSort"
 	"math/rand"
 	"time"
 )
@@ -30,9 +31,15 @@ func (q *QuickSort) Do3() {
 
 func (q *QuickSort) Sort(start int, end int) {
 	// 优化1,数据量少时走插入排序
-	//if end - start <= 15 {
-	//	insertionSort
-	//}
+	if end-start <= 15 {
+		i := insertionSort.InsertionSort{
+			Arr:   q.Arr,
+			Count: q.N,
+		}
+		i.Do()
+		q.Arr = i.Arr
+		return
+	}
 	if start >= end {
 		return
 	}
@@ -43,6 +50,15 @@ func (q *QuickSort) Sort(start int, end int) {
 }
 
 func (q *QuickSort) Sort2(start int, end int) {
+	if end-start <= 15 {
+		i := insertionSort.InsertionSort{
+			Arr:   q.Arr,
+			Count: q.N,
+		}
+		i.Do()
+		q.Arr = i.Arr
+		return
+	}
 	if start >= end {
 		return
 	}
@@ -53,6 +69,15 @@ func (q *QuickSort) Sort2(start int, end int) {
 }
 
 func (q *QuickSort) Sort3(start int, end int) {
+	if end-start <= 15 {
+		i := insertionSort.InsertionSort{
+			Arr:   q.Arr,
+			Count: q.N,
+		}
+		i.Do()
+		q.Arr = i.Arr
+		return
+	}
 	if start >= end {
 		return
 	}

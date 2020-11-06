@@ -1,6 +1,9 @@
 package mergeSort
 
-import "math"
+import (
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/sort/insertionSort"
+	"math"
+)
 
 // 归并排序
 type MergeSort struct {
@@ -16,13 +19,15 @@ func (m *MergeSort) Do() {
 // 递归使用归并排序， 对 Arr[l...r]的范围进行排序
 func (m *MergeSort) mergeSort(start int, end int) {
 	// 优化2 在数据量比较小的时候可以使用插排 todo: 思考插排和归并排序的性能对比
-	//if end - start <= 15 {
-	//	i := insertionSort.InsertionSort{
-	//		Arr:     m.Arr,
-	//		N:       len(m.Arr),
-	//	}
-	//	i.Do()
-	//}
+	if end-start <= 15 {
+		i := insertionSort.InsertionSort{
+			Arr:   m.Arr,
+			Count: len(m.Arr),
+		}
+		i.Do()
+		m.Arr = i.Arr
+		return
+	}
 	if start >= end { // 跳出递归
 		return
 	}
