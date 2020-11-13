@@ -41,3 +41,29 @@ func GenerateNearlyArray(n int, swapTimes int) map[int]int {
 
 	return arr
 }
+
+func MaxInt(n int, m int) int {
+	if n > m {
+		return n
+	}
+	return m
+}
+
+// 去掉非数字与字母的部分，并将大写字母转换为小写字母
+// a-z: 97-122
+// A-Z: 65-90
+// 0-9: 48-57
+func SimplifyStr(s string) string {
+	btS := []byte(s)
+
+	var nS []byte
+	for i := 0; i < len(btS); i++ {
+		if (btS[i] >= 48 && btS[i] <= 57) || (btS[i] >= 97 && btS[i] <= 122) {
+			nS = append(nS, btS[i])
+		} else if btS[i] >= 65 && btS[i] <= 90 {
+			nS = append(nS, btS[i]+32)
+		}
+	}
+
+	return string(nS)
+}
