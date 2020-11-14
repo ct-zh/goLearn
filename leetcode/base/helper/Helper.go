@@ -67,3 +67,11 @@ func SimplifyStr(s string) string {
 
 	return string(nS)
 }
+
+func CopyData(v map[int]int) map[int]int {
+	new := map[int]int{}
+	for k, v := range v {
+		new[k] = v
+	}
+	return new
+}
