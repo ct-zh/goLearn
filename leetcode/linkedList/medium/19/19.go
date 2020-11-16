@@ -51,6 +51,9 @@ func removeNthFromEnd(head *ListNode, n int) *ListNode {
 	p1, p2 := dummy, head
 	count := 0
 	for count < n { // 因为p2初始节点是head，相当于已经走了一格了,删除的其实是p1的下一个节点
+		if p2.Next == nil && count < n {
+			return nil
+		}
 		p2 = p2.Next
 		count++
 	}

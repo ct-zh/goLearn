@@ -17,6 +17,10 @@ func Test_removeNthFromEnd(t *testing.T) {
 			head: createLinkedList([]int{1, 2, 3, 4, 5}),
 			n:    2,
 		}},
+		{name: "test1", args: args{
+			head: createLinkedList([]int{1, 2, 3, 4, 5}),
+			n:    6,
+		}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
