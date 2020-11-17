@@ -1,4 +1,4 @@
-package bst
+package tree
 
 // 二分查找法,在有序数组arr中,查找target
 // 如果找到target,返回相应的索引index
