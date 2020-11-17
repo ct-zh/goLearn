@@ -3,6 +3,7 @@ package tree
 import "fmt"
 
 // 顺序查找表 sequence search Tree
+// 使用链表实现，新节点直接插在链表的头部
 
 type SST struct {
 	head  *sstNode
