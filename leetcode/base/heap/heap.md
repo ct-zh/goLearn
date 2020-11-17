@@ -44,19 +44,19 @@ type indexHeap struct{
     reverse             []int
     count               int
     capacity            int
-    getVal              func(k int) int
     shiftUp             func(k int)
     shiftDown           func(k int)
     Insert              func(index int, v int)
     ExtractMin          func() int
     GetMin              func() int
     Size                func() int
-    IsEmpty             func() int
-    ExtractMinIndex     func() int
-    GetMinIndex         func() int
-    GetItem             func(index int) int
-    Change              func(index int, v int)
-    Contain             func(index int) bool
+    IsEmpty             func() int                  // 这个方法之前都是普通堆的方法
+    getVal              func(k int) int             // 在堆内通过索引k获取对应的值
+    ExtractMinIndex     func() int                  // 使用indexes实现，获取最小值的索引
+    GetMinIndex         func() int                  // 获取最小值的索引
+    GetItem             func(index int) int         // 同getVal方法，不过这个是对外的，所以索引index需要+1
+    Change              func(index int, v int)      // 通过索引index改变其值为v，修改完之后需要reverse完成shiftDown和shiftUp操作
+    Contain             func(index int) bool        // 判断索引index处是否存在值，使用reverse实现
 }
 ```
 

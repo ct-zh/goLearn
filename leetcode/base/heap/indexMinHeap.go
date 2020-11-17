@@ -158,6 +158,13 @@ func (i *indexMinHeap) Change(index int, item int) {
 
 	index += 1
 	i.data[index] = item
+
+	// 这里既需要做shiftUp 又需要做shiftDown
+	// 因为在普通堆中，insert操作是在数组末尾增加数据，因此只需要做shiftUp
+	// extract操作是在数组首部做操作，所以只需要做shiftDown
+	// 初始化操作是从尾部一棵一棵树逐步做shiftDown操作
+	// 但是在索引堆中，修改操作可能是在数组的中间进行操作
+	// 因此既需要shiftUp也需要shiftDown
 	i.shiftUp(i.reverse[index])
 	i.shiftDown(i.reverse[index])
 }
