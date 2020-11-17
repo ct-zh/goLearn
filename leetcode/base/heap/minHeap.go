@@ -1,4 +1,4 @@
-package minHeap
+package heap
 
 type minHeap struct {
 	data     []int // 堆数组
@@ -6,7 +6,7 @@ type minHeap struct {
 	capacity int   // 堆的容量
 }
 
-// shiftDown 从下往上整理堆，使其符合最小堆定义
+// shiftUp 从下往上整理堆，使其符合最小堆定义; k是子节点
 // 约束条件: 父节点必须小于等于子节点，不然交换两个节点
 func (m *minHeap) shiftUp(k int) {
 	for {
@@ -21,7 +21,7 @@ func (m *minHeap) shiftUp(k int) {
 	}
 }
 
-// shiftDown 从顶往下整理堆，使其符合最小堆定义
+// shiftDown 从顶往下整理堆，使其符合最小堆定义；k是根节点
 func (m *minHeap) shiftDown(k int) {
 	for {
 		j := 2 * k
