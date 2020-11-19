@@ -49,6 +49,13 @@ func MaxInt(n int, m int) int {
 	return m
 }
 
+func MinInt(n int, m int) int {
+	if n < m {
+		return n
+	}
+	return m
+}
+
 // 去掉非数字与字母的部分，并将大写字母转换为小写字母
 // a-z: 97-122
 // A-Z: 65-90
