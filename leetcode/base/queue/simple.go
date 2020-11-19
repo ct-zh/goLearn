@@ -4,6 +4,7 @@ package queue
 // 树：层次遍历
 // 图：无权图的最短路径
 
+// 队列通常用双向链表来实现
 type (
 	// 基于双向链表的队列
 	Queue struct {
