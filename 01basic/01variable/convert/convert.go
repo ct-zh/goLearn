@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strconv"
 	"strings"
@@ -74,4 +75,14 @@ func ArrayToString(s []string) string {
 
 func ByteToString(b []byte) string {
 	return string(b)
+}
+
+// go里大小端的问题： binary.BigEndian/ binary.LettleEndian
+func ByteToUInt64(n []byte) uint64 {
+	//buffer := bytes.NewBuffer(n)
+	//var x int32
+	//binary.Read(buffer, binary.BigEndian, &x)
+	//return int(x)
+
+	return binary.BigEndian.Uint64(n)
 }
