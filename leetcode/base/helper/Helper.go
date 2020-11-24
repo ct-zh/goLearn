@@ -49,6 +49,18 @@ func MaxInt(n int, m int) int {
 	return m
 }
 
+func MaxInt2(args ...int) int {
+	if len(args) < 2 {
+		panic("params must be greater than 2")
+	}
+
+	max := MaxInt(args[0], args[1])
+	for i := 2; i < len(args); i++ {
+		max = MaxInt(max, args[i])
+	}
+	return max
+}
+
 func MinInt(n int, m int) int {
 	if n < m {
 		return n
