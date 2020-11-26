@@ -10,17 +10,17 @@ import (
 
 // 二分查找树
 type BST struct {
-	root  *node // 根节点
-	count int   // 节点个数
+	root  *bstNode // 根节点
+	count int      // 节点个数
 }
 
 // 二分搜索树中的节点为私有的结构体, 外界不需要了解二分搜索树节点的具体实现
 // 使用链表实现
-type node struct {
-	key   int    // 数据在二叉树里的值，用于在二叉树里排序
-	value string // 数据的内容，不一定是string类型：node是私有结构，不能返回node，所以用value字段来存储返回的内容
-	left  *node  // 左孩子
-	right *node  // 右孩子
+type bstNode struct {
+	key   int      // 数据在二叉树里的值，用于在二叉树里排序
+	value string   // 数据的内容，不一定是string类型：node是私有结构，不能返回node，所以用value字段来存储返回的内容
+	left  *bstNode // 左孩子
+	right *bstNode // 右孩子
 }
 
 func (b *BST) Size() int {
@@ -38,10 +38,10 @@ func (b *BST) Insert(key int, value string) {
 
 // 向以node为根的二分搜索树中, 插入节点(key, value), 使用递归算法
 // 返回插入新节点后的二分搜索树的根
-func (b *BST) insert(node2 *node, key int, value string) *node {
+func (b *BST) insert(node2 *bstNode, key int, value string) *bstNode {
 	if node2 == nil {
 		b.count++
-		return &node{key: key, value: value}
+		return &bstNode{key: key, value: value}
 	}
 	if key == node2.key { // 查找到 则直接更新value
 		node2.value = value
@@ -60,7 +60,7 @@ func (b *BST) Contain(key int) bool {
 }
 
 // 查看以node为根的二分搜索树中是否包含了以键值为key的节点，使用递归算法
-func (b *BST) contain(n *node, key int) bool {
+func (b *BST) contain(n *bstNode, key int) bool {
 	if n == nil {
 		return false
 	}
@@ -80,7 +80,7 @@ func (b *BST) Search(key int) (string, bool) {
 	return b.search(b.root, key)
 }
 
-func (b *BST) search(n *node, key int) (string, bool) {
+func (b *BST) search(n *bstNode, key int) (string, bool) {
 	if n == nil {
 		return "", false
 	}
@@ -110,7 +110,7 @@ func (b *BST) PostOrder() {
 }
 
 // 先序遍历
-func (b *BST) preOrder(n *node) {
+func (b *BST) preOrder(n *bstNode) {
 	if n == nil {
 		return
 	}
@@ -121,7 +121,7 @@ func (b *BST) preOrder(n *node) {
 }
 
 // 中序遍历
-func (b *BST) inOrder(n *node) {
+func (b *BST) inOrder(n *bstNode) {
 	if n == nil {
 		return
 	}
@@ -132,7 +132,7 @@ func (b *BST) inOrder(n *node) {
 }
 
 // 后续遍历
-func (b *BST) postOrder(n *node) {
+func (b *BST) postOrder(n *bstNode) {
 	if n == nil {
 		return
 	}
@@ -151,7 +151,7 @@ func (b *BST) LevelOrder() {
 	q := &queue.Queue{}
 	q.Push(b.root)
 	for !q.IsEmpty() {
-		node := q.Pop().(*node)
+		node := q.Pop().(*bstNode)
 
 		fmt.Println(node.key, " - ", node.value)
 
@@ -172,7 +172,7 @@ func (b *BST) Minimum() int {
 	return n.key
 }
 
-func (b *BST) minimum(n *node) *node {
+func (b *BST) minimum(n *bstNode) *bstNode {
 	if n.left == nil {
 		return n
 	}
@@ -188,7 +188,7 @@ func (b *BST) Maximum() int {
 	return n.key
 }
 
-func (b *BST) maximum(n *node) *node {
+func (b *BST) maximum(n *bstNode) *bstNode {
 	if n.right == nil {
 		return n
 	}
@@ -204,7 +204,7 @@ func (b *BST) RemoveMin() {
 
 // 删除掉以node为根的二分搜索树中的最小节点
 // 返回删除节点后新的二分搜索树的根
-func (b *BST) removeMin(n *node) *node {
+func (b *BST) removeMin(n *bstNode) *bstNode {
 	// 左节点是空，说明该节点已经是最小值了
 	// 将右子树提取出来直接接到上面一层的左子树
 	if n.left == nil {
@@ -223,7 +223,7 @@ func (b *BST) RemoveMax() {
 	}
 }
 
-func (b *BST) removeMax(n *node) *node {
+func (b *BST) removeMax(n *bstNode) *bstNode {
 	if n.right == nil {
 		b.count--
 		return n.left
@@ -238,7 +238,7 @@ func (b *BST) Remove(key int) {
 
 // 删除掉以node为根的二分搜索树中键值为key的节点, 递归算法
 // 返回删除节点后新的二分搜索树的根
-func (b *BST) remove(n *node, key int) *node {
+func (b *BST) remove(n *bstNode, key int) *bstNode {
 	if n == nil {
 		return nil
 	}
