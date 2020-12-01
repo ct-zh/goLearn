@@ -68,6 +68,18 @@ func MinInt(n int, m int) int {
 	return m
 }
 
+func MinInt2(args ...int) int {
+	if len(args) < 2 {
+		panic("params must be greater than 2")
+	}
+
+	min := MinInt(args[0], args[1])
+	for i := 2; i < len(args); i++ {
+		min = MinInt(min, args[i])
+	}
+	return min
+}
+
 // 去掉非数字与字母的部分，并将大写字母转换为小写字母
 // a-z: 97-122
 // A-Z: 65-90
