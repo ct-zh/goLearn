@@ -6,7 +6,19 @@ import (
 	"time"
 )
 
-// 生成元素数量为n,元素在[rangeL,rangeR]区间的 整数数组
+func GenerateRandArr(n int, rangeL int, rangeR int) []int {
+	if rangeL > rangeR {
+		return nil
+	}
+	arr := make([]int, n)
+	rand2 := rand.New(rand.NewSource(time.Now().Unix()))
+	for i := 0; i < n; i++ {
+		arr[i] = rand2.Int()%(rangeR-rangeL+1) + rangeL
+	}
+	return arr
+}
+
+// 生成元素数量为n,元素在[rangeL,rangeR]区间的 整数集合
 func GenerateRandomArray(n int, rangeL int, rangeR int) map[int]int {
 	if rangeL > rangeR {
 		return nil
@@ -40,6 +52,16 @@ func GenerateNearlyArray(n int, swapTimes int) map[int]int {
 	}
 
 	return arr
+}
+
+// 检查数组是否按照升序排序的
+func CheckSort(arr []int) bool {
+	for i := 1; i < len(arr); i++ {
+		if arr[i] < arr[i-1] {
+			return false
+		}
+	}
+	return true
 }
 
 func MaxInt(n int, m int) int {
