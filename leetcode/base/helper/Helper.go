@@ -19,12 +19,12 @@ func GenerateRandArr(n int, rangeL int, rangeR int) []int {
 }
 
 // 生成元素数量为n,元素在[rangeL,rangeR]区间的 整数集合
-func GenerateRandomArray(n int, rangeL int, rangeR int) map[int]int {
+func GenerateRandomArray(n int, rangeL int, rangeR int) []int {
 	if rangeL > rangeR {
 		return nil
 	}
 
-	arr := map[int]int{} // rand
+	arr := make([]int, n) // rand
 
 	rand2 := rand.New(rand.NewSource(time.Now().Unix()))
 	for i := 0; i < n; i++ {
@@ -37,8 +37,8 @@ func GenerateRandomArray(n int, rangeL int, rangeR int) map[int]int {
 
 // 生成近似顺序的整数数组
 // n: 数组大小; swapTimes: 数组打乱次数;
-func GenerateNearlyArray(n int, swapTimes int) map[int]int {
-	arr := make(map[int]int)
+func GenerateNearlyArray(n int, swapTimes int) []int {
+	arr := make([]int, n)
 	for i := 0; i < n; i++ {
 		arr[i] = i
 	}

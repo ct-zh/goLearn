@@ -26,55 +26,69 @@ import (
 // 3.元素全部相同的列表排序速度比较
 // 做成协程测试，每个排序一个协程
 func main() {
-
 	// 在这里填充测试用例
 	tests := []struct {
-		arr  map[int]int
+		arr  []int
 		text string
 	}{
-		//{
-		//	Helper.GenerateRandomArray(100, 0, 999),
-		//	"0-999 随机100个数",
-		//},
 		{
-			Helper.GenerateRandomArray(10000, 0, 99999),
-			"0-99999 随机10000个数",
+			Helper.GenerateRandArr(100, 0, 999),
+			"随机100个数[0-999]",
 		},
-		//{
-		//	Helper.GenerateNearlyArray(100, 0),
-		//	"0-99按顺序排列",
-		//},
-		//{
-		//	Helper.GenerateNearlyArray(100, 10),
-		//	"0-99随机交换10次",
-		//},
-		//{
-		//	Helper.GenerateRandomArray(100, 0, 0),
-		//	"100个0",
-		//},
+		{
+			Helper.GenerateRandArr(10000, 0, 99999),
+			"随机10000个数[0-99999]",
+		},
+		{
+			Helper.GenerateNearlyArray(100, 0),
+			"0-99按顺序排列",
+		},
+		{
+			Helper.GenerateNearlyArray(100, 10),
+			"0-99随机交换10次",
+		},
+		{
+			Helper.GenerateRandomArray(100, 0, 0),
+			"100个0",
+		},
 	}
 
 	// 在这里填充排序算法
-	sortFunc := []func(map[int]int, string, chan string){
-		selectionS,
-		insertionS,
-		mergeS1,
-		mergeS2,
-		quickS1,
-		quickS2,
-		quickS3,
+	sortFunctions := map[string]func([]int){
+		"选择排序":     selectionSort.SelectionSort,
+		"插入排序":     insertionSort.InsertionSort,
+		"自顶向下归并排序": mergeSort.MergeSort,
+		"自底向上归并排序": mergeSort.MergeSort1,
+		"随机快排":     quickSort.QuickSort,
+		"双路快排":     quickSort.QuickSort2Ways,
+		"三路快排":     quickSort.QuickSort3Ways,
 	}
 
 	sortCount := 0
 	ch := make(chan string)
 
 	for _, tt := range tests {
-		for _, sFunc := range sortFunc {
-			// cp map data 因为map是引用类型的
-			go sFunc(Helper.CopyData(tt.arr), tt.text, ch)
+		for name, sFunc := range sortFunctions {
+			go func(name string, data []int, text string) {
+				arr := make([]int, len(data))
+				copy(arr, data)
+				startTime := time.Now()
+
+				sFunc(arr)
+
+				end := time.Now().Sub(startTime)
+				outStr := fmt.Sprintf("%s 消耗时间： %.8fs",
+					name, end.Seconds())
+				if Helper.CheckSort(arr) {
+					outStr += " 例子[" + text + "]检测通过 Pass!"
+				} else {
+					outStr += " 例子[" + text + "]检测未通过  Wrong!"
+				}
+				ch <- outStr
+			}(name, tt.arr, tt.text)
 		}
 
-		sortCount += len(sortFunc)
+		sortCount += len(sortFunctions)
 	}
 
 	// 异步获取排序结果
@@ -84,169 +98,4 @@ func main() {
 	}
 
 	fmt.Println("所有例子测试完毕")
-}
-
-// 测试排序算法是否通过,默认排序是从小到大
-func check(arr map[int]int, count int) bool {
-	for i := 1; i < count; i++ {
-		if arr[i-1] > arr[i] {
-			return false
-		}
-	}
-	return true
-}
-
-// 选择排序
-func selectionS(arr map[int]int, text string, ch chan string) {
-	startTime := time.Now()
-
-	s := selectionSort.SelectionSort{
-		Arr:   arr,
-		Count: len(arr),
-	}
-	s.Do()
-
-	end := time.Now().Sub(startTime)
-	outStr := fmt.Sprintf("选择排序 消耗时间： %.8fs", end.Seconds())
-
-	if check(s.Arr, s.Count) {
-		outStr += " 例子[" + text + "]检测通过 Pass!"
-	} else {
-		outStr += " 例子[" + text + "]检测未通过  Wrong!"
-	}
-
-	ch <- outStr
-}
-
-// 插入排序
-func insertionS(arr map[int]int, text string, ch chan string) {
-
-	startTime := time.Now()
-
-	s := insertionSort.InsertionSort{
-		Arr:   arr,
-		Count: len(arr),
-	}
-	s.DoBetter()
-
-	end := time.Now().Sub(startTime)
-	outStr := fmt.Sprintf("插入排序 消耗时间： %.8fs", end.Seconds())
-
-	if check(s.Arr, s.Count) {
-		outStr += " 例子[" + text + "]检测通过 Pass!"
-	} else {
-		outStr += " 例子[" + text + "]检测未通过  Wrong!"
-	}
-
-	ch <- outStr
-}
-
-// 自顶向下归并排序
-func mergeS1(arr map[int]int, text string, ch chan string) {
-	startTime := time.Now()
-
-	s := mergeSort.MergeSort{
-		Arr: arr,
-		N:   len(arr),
-	}
-	s.Do()
-
-	end := time.Now().Sub(startTime)
-	outStr := fmt.Sprintf("自顶向下归并排序 消耗时间： %.8fs", end.Seconds())
-
-	if check(s.Arr, s.N) {
-		outStr += " 例子[" + text + "]检测通过 Pass!"
-	} else {
-		outStr += " 例子[" + text + "]检测未通过  Wrong!"
-	}
-
-	ch <- outStr
-}
-
-// 自底向上归并排序
-func mergeS2(arr map[int]int, text string, ch chan string) {
-	startTime := time.Now()
-
-	s := mergeSort.MergeSort{
-		Arr: arr,
-		N:   len(arr),
-	}
-	s.Do()
-
-	end := time.Now().Sub(startTime)
-	outStr := fmt.Sprintf("自底向上归并排序 消耗时间： %.8fs", end.Seconds())
-
-	if check(s.Arr, s.N) {
-		outStr += " 例子[" + text + "]检测通过 Pass!"
-	} else {
-		outStr += " 例子[" + text + "]检测未通过  Wrong!"
-	}
-
-	ch <- outStr
-}
-
-// 随机快排
-func quickS1(arr map[int]int, text string, ch chan string) {
-	startTime := time.Now()
-
-	s := quickSort.QuickSort{
-		Arr: arr,
-		N:   len(arr),
-	}
-	s.Do()
-
-	end := time.Now().Sub(startTime)
-	outStr := fmt.Sprintf("随机快排 消耗时间： %.8fs", end.Seconds())
-
-	if check(s.Arr, s.N) {
-		outStr += " 例子[" + text + "]检测通过 Pass!"
-	} else {
-		outStr += " 例子[" + text + "]检测未通过  Wrong!"
-	}
-
-	ch <- outStr
-}
-
-// 双路快排
-func quickS2(arr map[int]int, text string, ch chan string) {
-	startTime := time.Now()
-
-	s := quickSort.QuickSort{
-		Arr: arr,
-		N:   len(arr),
-	}
-	s.Do2()
-
-	end := time.Now().Sub(startTime)
-	outStr := fmt.Sprintf("双路快排 消耗时间： %.8fs", end.Seconds())
-
-	if check(s.Arr, s.N) {
-		outStr += " 例子[" + text + "]检测通过 Pass!"
-	} else {
-		outStr += " 例子[" + text + "]检测未通过  Wrong!"
-	}
-
-	ch <- outStr
-}
-
-// 三路快排
-func quickS3(arr map[int]int, text string, ch chan string) {
-	startTime := time.Now()
-
-	s := quickSort.QuickSort{
-		Arr: arr,
-		N:   len(arr),
-	}
-	s.Do3()
-
-	end := time.Now().Sub(startTime)
-	outStr := fmt.Sprintf("三路快排 消耗时间： %.8fs", end.Seconds())
-
-	if check(s.Arr, s.N) {
-		outStr += " 例子[" + text + "]检测通过 Pass!"
-	} else {
-		outStr += " 例子[" + text + "]检测未通过  Wrong!"
-	}
-
-	ch <- outStr
 }
