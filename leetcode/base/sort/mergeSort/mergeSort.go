@@ -15,7 +15,7 @@ func MergeSort(arr []int) {
 // // 递归使用归并排序， 对 Arr[l...r]的范围进行排序
 func _mergeSort(l, r int, arr []int) {
 	if r-l <= 15 { // 优化2 在数据量比较小的时候可以使用插排
-		insertionSort.InsertionSort(arr)
+		insertionSort.InsertionSort(arr[l : r+1])
 		return
 	}
 	if l >= r {
