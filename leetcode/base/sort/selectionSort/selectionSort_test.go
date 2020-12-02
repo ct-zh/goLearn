@@ -17,7 +17,7 @@ func Test_selectionSort(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			selectionSort(tt.args.arr)
+			SelectionSort(tt.args.arr)
 			if !Helper.CheckSort(tt.args.arr) {
 				t.Errorf(" array: %+v\n", tt.args.arr)
 			}
