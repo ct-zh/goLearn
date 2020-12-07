@@ -52,13 +52,12 @@ func CreateTreeByArr(arr []string) *TreeNode {
 			list[i+1] = &TreeNode{
 				Val: v,
 			}
-		}
-
-		// 判断是左子树还是右子树
-		if (i+1)%2 == 0 { // 左子树
-			list[(i+1)/2].Left = list[i+1]
-		} else { // 右子树
-			list[(i+1)/2].Right = list[i+1]
+			// 判断是左子树还是右子树
+			if (i+1)%2 == 0 { // 左子树
+				list[(i+1)/2].Left = list[i+1]
+			} else { // 右子树
+				list[(i+1)/2].Right = list[i+1]
+			}
 		}
 	}
 
