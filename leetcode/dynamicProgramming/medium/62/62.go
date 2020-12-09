@@ -5,7 +5,7 @@ package _62
 // 因此有动态转移方程：f(i, j) = f(i-1, j) + f(i, j-1)
 // 剪枝： 如果i=0或者j=0 则动态转移方程变为: f(0,j) = f(0, j-1) 和 f(i,0)=f(i-1,0)
 // 时间复杂度： O(mn)
-// 空间复杂度: O(mn) 可以用滚动数组进行优化
+// 空间复杂度: O(mn) 可以用滚动数组进行优化 成 O(mix(m, n))
 func uniquePaths1(m int, n int) int {
 	dp := make([][]int, m)
 	for i := range dp {
