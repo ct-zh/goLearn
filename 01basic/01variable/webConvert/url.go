@@ -5,7 +5,7 @@ import (
 	"net/url"
 )
 
-func ParseUrl(u string) (interface{}, error) {
+func ParseUrl(u string) (*url.URL, error) {
 	parse, err := url.Parse(u)
 	if err != nil {
 		return nil, err
