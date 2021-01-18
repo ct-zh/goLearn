@@ -6,6 +6,9 @@
 5. 希尔排序
 6. 快排,随机快排,双路,三路快排
 7. 排序的性能比较
+8. 归并排序的另外一个优化，在merge外申请aux空间
+
+> https://github.com/liuyubobobo/Play-with-Algorithms
 
 ## 比较
 1. 选择排序，复杂度O(n^2)
