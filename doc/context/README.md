@@ -60,3 +60,9 @@ Contexts are safe for simultaneous use by multiple goroutines.
 
 
 See [blog](https://blog.golang.org/context) for example code for a server that uses Contexts.
+
+
+# 了解context
+1. context 几乎成为了并发控制和超时控制的标准做法。
+
+
