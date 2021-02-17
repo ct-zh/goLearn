@@ -66,3 +66,8 @@ See [blog](https://blog.golang.org/context) for example code for a server that u
 1. context 几乎成为了并发控制和超时控制的标准做法。
 
 
+# 参考资料
+> 深度解密Go语言之context https://zhuanlan.zhihu.com/p/68792989
+> go程序包源码解读——golang.org/x/net/contex https://studygolang.com/articles/5131
+>
+> Golang 如何正确使用 Context https://studygolang.com/articles/23247?fr=sidebar
