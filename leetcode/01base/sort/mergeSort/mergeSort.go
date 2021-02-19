@@ -55,13 +55,14 @@ func MergeSort1(arr []int) {
 // 将arr[start,mid]和arr[mid+1,end] 两部分进行归并
 func merge(l, mid, r int, arr []int) {
 	aux := make([]int, len(arr))
-	for i := l; i <= r; i++ { // 将[l...r]拷贝到aux中, 因为是闭区间所以i<=r
+	for i := l; i <= r; i++ { // 1. 将[l...r]拷贝到aux中, 因为是闭区间所以i<=r
 		aux[i-l] = arr[i] // 注意aux是从0开始的，而此部分arr是从l开始的
 	}
 
-	cursorL, cursorR := l, mid+1 // 两个游标，分别代表[l...mid]区间与[mid+1...r]区间
+	cursorL, cursorR := l, mid+1 // 2. 两个游标，分别代表[l...mid]区间与[mid+1...r]区间
 
-	for j := l; j <= r; j++ { // 因为是闭区间所以j<=r
+	// 3. 开始遍历拷贝的aux，对两个游标的数据做比较，获得有顺序的arr, merge完毕
+	for j := l; j <= r; j++ { //  因为是闭区间所以j<=r
 		if cursorL > mid { // 游标L越界
 			arr[j] = aux[cursorR-l]
 			cursorR++
