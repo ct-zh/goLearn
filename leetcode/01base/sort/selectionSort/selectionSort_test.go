@@ -1,7 +1,7 @@
 package selectionSort
 
 import (
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
+	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/helper"
 	"testing"
 )
 
