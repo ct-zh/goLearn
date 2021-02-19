@@ -5,7 +5,7 @@ package quickSort
 // 近似有序的数组排序，即最差情况，退化为O(n^2)
 
 import (
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/sort/insertionSort"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/sort/insertionSort"
 	"math/rand"
 	"time"
 )
