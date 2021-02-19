@@ -1,9 +1,10 @@
 package main
 
 import (
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/sort/mergeSort"
 	"testing"
+
+	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/helper"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/sort/mergeSort"
 )
 
 func TestSortFunc(t *testing.T) {

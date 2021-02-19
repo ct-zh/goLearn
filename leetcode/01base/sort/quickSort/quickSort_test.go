@@ -1,8 +1,9 @@
 package quickSort
 
 import (
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
 	"testing"
+
+	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/helper"
 )
 
 func TestQuickSort(t *testing.T) {

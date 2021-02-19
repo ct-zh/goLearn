@@ -1,8 +1,8 @@
 package mergeSort
 
 import (
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/sort/insertionSort"
+	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/helper"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/sort/insertionSort"
 )
 
 // 归并排序

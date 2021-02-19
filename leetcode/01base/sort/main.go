@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/sort/insertionSort"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/sort/mergeSort"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/sort/quickSort"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/sort/selectionSort"
 	"time"
+
+	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/helper"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/sort/insertionSort"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/sort/mergeSort"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/sort/quickSort"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/sort/selectionSort"
 )
 
 // 不同排序算法的性能比较, 平均时间复杂度
