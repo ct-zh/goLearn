@@ -1,7 +1,7 @@
 package insertionSort
 
 import (
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
+	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/01base/helper"
 	"testing"
 )
 
@@ -37,7 +37,7 @@ func TestInsertionSort1(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			InsertionSort(tt.args.arr)
+			InsertionSort1(tt.args.arr)
 			if !Helper.CheckSort(tt.args.arr) {
 				t.Errorf(" array: %+v\n", tt.args.arr)
 			}
