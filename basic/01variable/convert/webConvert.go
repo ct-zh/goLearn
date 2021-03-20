@@ -1,10 +1,27 @@
-package webConvert
+package convert
 
 import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"net/url"
 )
+
+func ParseUrl(u string) (*url.URL, error) {
+	parse, err := url.Parse(u)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("Scheme: %s ", parse.Scheme)
+	values, err := url.ParseQuery(parse.RawQuery)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("Values: %+v \n", values)
+
+	return parse, nil
+}
 
 func JsonEncodeAndDecode(s interface{}, save interface{}) error {
 	// j 是encode后的[]byte
