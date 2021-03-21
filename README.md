@@ -1,16 +1,16 @@
-# 我的go语言学习之路
-> 笨鸟先飞. 当别人都在「王者」「吃鸡」时，你却在学习，差距就是这样慢慢拉开的。
+# 代码练习-golang
+> 笨鸟先飞.
 
 ## 目录
-注意，每个目录都应该写好README.md，如果是一个小项目则应该写CHANGELOG。每个项目单独建立mod文件。
 
 |目录|注释|
 |---|---|
-|01basic|go基础语法练习|
-|doc|通过各种demo来学习go语言标准库|
-|go-kie|go-kit学习|
-|go_iris|iris框架学习|
-|leetcode|刷题整理|
-|lib|一些demo|
-|src|正在逐渐取代上面的lib文件夹|
+|[basic](./basic/README.md)|基础知识与例子|
+|[doc](./doc/README.md)|go语言标准库以及源码分析|
+|go-kit|go-kit框架|
+|[go_iris](./go_iris/README.md)|iris框架|
+|[gorm](./gorm/README.md)|gorm进行curd|
+|leetcode|刷题整理，golang版本|
+|source|第三方源码分析|
+|[src](./src/README.md)|demo代码|
 

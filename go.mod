@@ -3,6 +3,8 @@ module github.com/LannisterAlwaysPaysHisDebts/goLearn
 go 1.14
 
 require (
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gin-gonic/gin v1.6.3
 	github.com/go-kit/kit v0.10.0
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
 	github.com/golang/mock v1.5.0
@@ -15,6 +17,7 @@ require (
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/sys v0.0.0-20210309074719-68d13333faf2 // indirect
 	golang.org/x/tools v0.1.0 // indirect
+	gopkg.in/yaml.v2 v2.2.8
 	gorm.io/driver/mysql v1.0.4
 	gorm.io/gorm v1.20.12
 )
