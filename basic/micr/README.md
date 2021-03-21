@@ -1,5 +1,11 @@
 # 微服务
 
+## 代码与实现
+- [jwt实现鉴权](../../src/jwt/README.md)
+
+
+## 一般微服务痛点
+
 1. Json-rpc, protobuf, grpc, 自定义中间件;
 2. Peewee, gin; yapi接口管理;
 3. 日志管理, 优雅退出,jwt验证,表单, 短信与图片验证码;
