@@ -7,6 +7,24 @@ import (
 	"net/url"
 )
 
+func SetUrl(base string, params map[string]string) (str string, err error) {
+	myUrl, err := url.Parse(base)
+	if err != nil {
+		return
+	}
+
+	if len(params) > 0 {
+		urlParams := url.Values{}
+		for k, i := range params {
+			urlParams.Set(k, i)
+		}
+		myUrl.RawQuery = urlParams.Encode()
+	}
+
+	str = myUrl.String()
+	return
+}
+
 func ParseUrl(u string) (*url.URL, error) {
 	parse, err := url.Parse(u)
 	if err != nil {
