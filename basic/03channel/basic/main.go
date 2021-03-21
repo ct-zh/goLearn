@@ -5,17 +5,6 @@ import (
 	"time"
 )
 
-func createWork(i int) chan int {
-	// 创建一个int类型的channel
-	c := make(chan int)
-	go func(a int, c2 chan int) {
-		for n := range c2 {
-			fmt.Printf("Channel Id: %d Value: %d\n", a, n)
-		}
-	}(i, c)
-	return c
-}
-
 // 一个最简单的channel
 func main() {
 	work := createWork(1)
@@ -25,4 +14,16 @@ func main() {
 		work <- i
 	}
 	time.Sleep(2 * time.Second)
+	close(work) // 两秒后关闭channel
+}
+
+// 创建channel
+func createWork(i int) chan int {
+	c := make(chan int)
+	go func(a int, c2 chan int) {
+		for n := range c2 {
+			fmt.Printf("Channel Id: %d Value: %d\n", a, n)
+		}
+	}(i, c)
+	return c
 }
