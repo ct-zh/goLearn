@@ -1,4 +1,91 @@
-# doc translate
+# context包
+> 受限于作者经验与理解,本文不保证时效性准确性;
+
+## 了解context
+> context定义上下文类型，它跨API边界和进程之间传递截止日期、取消信号和其他请求范围的值。
+
+context是并发控制和超时控制的标准做法。[简单的demo](./simple/main.go)
+
+context的使用原则:
+- 不要把Context存在一个结构体当中，显式地传入函数。Context变量需要作为第一个参数使用，一般命名为ctx;
+- 即使方法允许，也不要传入一个nil的Context，如果你不确定你要用什么Context的时候传一个context.TODO;
+- 使用context的Value相关方法只应该用于在程序和接口中传递的和请求相关的元数据，不要用它来传递一些可选的参数;
+- 同样的Context可以用来传递到不同的goroutine中，Context在多个goroutine中是安全;
+
+
+## 源码解析
+> 见src/context/context.go
+
+### context对外的方法
+context包一共有四个with方法:
+- `WithCancel` 返回一个cancel函数，调用这个函数则可以主动停止goroutine;
+- `WithValue` WithValue可以设置一个key/value的键值对，可以在下游任何一个嵌套的context中通过key获取value。但是不建议使用这种来做goroutine之间的通信;
+- `WithTimeout` 函数可以设置一个time.Duration，到了这个时间则会cancel这个context;
+- `WithDeadline` WithDeadline函数跟WithTimeout很相近，只是WithDeadline设置的是一个时间点;
+这四个方法的[demo见](./with/with.go)
+
+> *值得注意的是*: 不要在WithValue里面存储可变的value, 这个value应该是伴随着这个请求恒定不变的值;
+> 哪些是不变的值?如:
+>   - requestId
+>   - userId
+> 哪些显然是会变化的值?如:
+>   - db连接,或者其他会close的连接
+>   - auth认证有关的内容
+> 总之,尽量不要用Context.Value
+
+还有两个获取context的方法:`TODO`和`Background`,这两个方法返回的都是`emptyCtx`,`emptyCtx`从不取消，没有值，也没有截止日期;
+
+两个error变量:
+- `Canceled`: context canceled时返回的error;
+- `DeadlineExceeded`: context deadline过期时的error;
+
+以及最重要的context接口:
+```go
+type Context interface {
+    // 该方法返回一个time和标识是否已设置deadline的bool值，如果没有设置deadline，则ok == false，此时deadline为一个初始值的time.Time值
+    Deadline() (deadline time.Time, ok bool)
+    
+    // 当timeout或者调用cancel方法时，将会close掉该chan
+    Done() <-chan struct{}
+
+    Err() error
+
+    Value(key interface{}) interface{}
+}
+```
+
+### 私有方法
+#### cancelCtx
+`WithCancel`方法会创建一个`cancelCtx`
+```go
+type cancelCtx struct {
+	Context // 保存parent context
+
+	mu       sync.Mutex            // 保护下列字段
+	done     chan struct{}         // 用来标识是否已被cancel; 当外部触发cancel、或者父Context的channel关闭时，此done也会关闭
+	children map[canceler]struct{} // 保存它的所有子canceler, 第一次调用cancel函数时设置为nil
+	err      error                 // 调用过cancel后就不为nil了
+}
+```
+
+`cancelCtx`的主要方法:
+- `Done`: Done函数返回一个chan struct{}的channel，用来判断context是否已经被close;
+- `cancel`: `WithCancel`方法暴露到外面的cancel函数, 调用cancel就会走到这个逻辑;会关闭`done`,并且将所有的children ctx的done关闭;
+
+#### timerCtx
+使用`WithTimeout`和`WithDeadline`会创建一个`timerCtx`, 并注册一个函数来定时cancel:
+```go
+c.timer = time.AfterFunc(dur, func() {
+    c.cancel(true, DeadlineExceeded)
+})
+```
+`timerCtx`内部有一个`cancelCtx`,在cancel的时候直接调用`cancelCtx`的cancel方法,并关闭定时器;
+
+#### valueCtx
+使用`WithValue`会创建一个`valueCtx`, 比Context多key与value参数;
+
+
+## 文档翻译doc translate
 
 Package context defines the Context type, 
 which carries deadlines, cancelation signals, 
@@ -62,12 +149,8 @@ Contexts are safe for simultaneous use by multiple goroutines.
 See [blog](https://blog.golang.org/context) for example code for a server that uses Contexts.
 
 
-# 了解context
-1. context 几乎成为了并发控制和超时控制的标准做法。
 
-
-# 参考资料
-> 深度解密Go语言之context https://zhuanlan.zhihu.com/p/68792989
-> go程序包源码解读——golang.org/x/net/contex https://studygolang.com/articles/5131
->
-> Golang 如何正确使用 Context https://studygolang.com/articles/23247?fr=sidebar
+## reference
+- [深度解密Go语言之context](https://zhuanlan.zhihu.com/p/68792989)
+- [go程序包源码解读——golang.org/x/net/context](https://studygolang.com/articles/5131)
+- [Golang 如何正确使用 Context](https://studygolang.com/articles/23247?fr=sidebar)
