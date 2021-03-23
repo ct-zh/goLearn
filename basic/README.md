@@ -14,3 +14,6 @@
 - 5. [error错误处理](./error/.)
 - 6. [http](./http/README.md)
 - 7. [go实现rpc调用](./rpc/README.md)
+
+
+// todo defer https://blog.learngoprogramming.com/5-gotchas-of-defer-in-go-golang-part-ii-cc550f6ad9aa

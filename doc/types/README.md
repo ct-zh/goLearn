@@ -281,6 +281,8 @@ fmt.Println(c == nil)	// false
 
 
 ## map
+// todo https://www.cnblogs.com/-lee/p/12807063.html
+
 1. map是hash table实现,无序;
 2. map*不是线程安全的*;
 3. hash冲突常用*线性探测*或者*拉链法*
