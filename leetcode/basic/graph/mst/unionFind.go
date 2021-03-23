@@ -80,7 +80,7 @@ func (u *unionFind) UnionElements(p int, q int) error {
 		u.parent[qRoot] = pRoot
 	} else {
 		u.parent[qRoot] = pRoot
-		u.rank[pRoot] += 1	// 因为只有这种情况会增加rank的深度
+		u.rank[pRoot] += 1 // 因为只有这种情况会增加rank的深度
 	}
 
 	return nil

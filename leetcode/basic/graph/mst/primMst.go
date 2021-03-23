@@ -14,12 +14,12 @@ import "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weigh
 // 如果[6,7]这条边权值小于[0,6]，则更新掉索引堆里6对应的权值
 // 以上操作重复循环，直到所有点都划入新的切分中，即可得到最小生成树
 type PrimMst struct {
-	g         *weightGraph.WeightGraph  // 图
-	ipq       *indexMinHeap // 最小索引堆
-	edgeTo    []weightGraph.Edge        // 存储和每个节点相邻的最短的横切边
-	marked    []bool        // 表示该点是否被标记了，根据true和false将图划分为两个切分
-	mst       []weightGraph.Edge        // 最小生成树 v-1个边
-	mstWeight float64       // 最小生成树的权值
+	g         *weightGraph.WeightGraph // 图
+	ipq       *indexMinHeap            // 最小索引堆
+	edgeTo    []weightGraph.Edge       // 存储和每个节点相邻的最短的横切边
+	marked    []bool                   // 表示该点是否被标记了，根据true和false将图划分为两个切分
+	mst       []weightGraph.Edge       // 最小生成树 v-1个边
+	mstWeight float64                  // 最小生成树的权值
 }
 
 // prim 算法辅助函数

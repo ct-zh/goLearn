@@ -33,10 +33,10 @@ import (
 // 使用队列数据结构 queue-based bellman ford算法
 type bellmanFord struct {
 	g                *weightGraph.WeightGraph
-	s                int       // 起点
-	distTo           []float64 // s到某个节点的最小权值
-	from             []weightGraph.Edge    // s到某个节点从哪个边过来的
-	hasNegativeCycle bool      // 是否存在负权环
+	s                int                // 起点
+	distTo           []float64          // s到某个节点的最小权值
+	from             []weightGraph.Edge // s到某个节点从哪个边过来的
+	hasNegativeCycle bool               // 是否存在负权环
 }
 
 // 再进行一次松弛操作，判断是否存在负权环
