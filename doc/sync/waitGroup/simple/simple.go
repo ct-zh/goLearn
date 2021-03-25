@@ -5,25 +5,21 @@ import (
 	"sync"
 )
 
-// 06 一个简单的多协程程序，
-// input负责传递「用户输入的数据」到channel
-// output负责输出数据
-
-// 知识点： sync.WaitGroup 用来同步
+// waitGroup用法
 var wg sync.WaitGroup
 
 func main() {
 	ch := make(chan string)
-	wg.Add(2)
+	wg.Add(2) // 总共需要等待两个Done执行
 	go input(ch)
 	go output(ch)
-	wg.Wait()
+	wg.Wait() // 阻塞等待两个Done执行完毕
 	fmt.Println("Exit")
 }
 
 func input(ch chan string) {
 	defer wg.Done()
-	defer close(ch)
+	defer close(ch) // 一对一的 channel 必须在发送端进行关闭操作
 	var input string
 	fmt.Println("input EOF to shut down! ")
 	for {
