@@ -107,6 +107,7 @@ type iface struct {
 ```
 eface有`_type`字段;而iface有内容更丰富的`itab`字段,其中就包含了`_type`字段;
 
+注意,`[]interface{}`类型是数组,`*interface{}`类型是指针,这两个的类型都不是接口,没有接口相关特性,这很容易搞混(坑).见下面例子:
 
 #### []interface
 > 原文见: https://github.com/golang/go/wiki/InterfaceSlice
@@ -216,6 +217,7 @@ fmt.Printf("User1's name: %s\n", user1.Name())
 ## nil
 
 > nil is a predeclared identifier representing the zero value for a pointer, channel, func, interface, map, or slice type.
+> 
 > nil是一个预先声明的标识符，表示指针、通道、函数、接口、映射或切片类型的零值。
 
 nil并不是go的关键字之一,甚至你可以设定一个变量名字就要`nil`(但是最好不要这样做);
@@ -245,7 +247,16 @@ func main() {
 ```
 main函数里,为什么`Generate()`与`Test()`返回的数据都是类型为`*main.MagicError`,值为`nil`, 为何Generate就能等于nil,而Test不等于nil呢?
 
-> 首先声明,上面这段代码是有问题的代码,正确的error返回方式会贴在这一节的最后面;
+> 上面这段代码有bug, Test函数应该这样写:
+```go
+func Test() error{
+	err := Generate()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+```
 
 这是golang的一个经典问题了,想要搞清楚这个问题,必须先知道interface的实现,因为`Test()`方法返回的error是interface类型;我们知道,interface底层,无论是iface还是eface,都存在type与data,*类型为interface的变量判断是否等于nil,必须type和data都为nil*
 
@@ -286,6 +297,7 @@ fmt.Println(c == nil)	// false
 1. map是hash table实现,无序;
 2. map*不是线程安全的*;
 3. hash冲突常用*线性探测*或者*拉链法*
+
    开放定址（线性探测）和拉链的优缺点
     - 拉链法比线性探测处理简单
     - 线性探测查找是会被拉链法会更消耗时间
@@ -351,7 +363,47 @@ func NewArray(elem *Type, bound int64) *Type {
 
 
 ## slice
+### 引用类型的坑
+slice是引用类型, 初学者可能会碰到一个坑,例如:
+```go
+func foo(t []int) {
+	t[0] = 99
+}
+a := []int{1}
+foo(a)
+fmt.Println(a)	// [99]
+```
+因为是引用类型,底层数组里0的位置修改成了99,所以`a[0]`就变成了99;
+
+但是如果进行append操作:
+```go
+func foo(t []int) {
+	t[0] = 99
+	t = append(t, 100)
+	t[0] = 101
+}
+a := []int{1}
+foo(a)
+fmt.Println(a)	// [99]
+```
+因为append触发了扩容操作, 因此foo函数对应的局部变量t底层的array已经变成了另外一个array;所以只有还未扩容前的改动生效了;
+
+如果是二维slice呢?
+```go
+func foo(t [][]int) {
+	t[0][0] = 55
+}
+a := [][]int{{1}}
+foo(a)
+fmt.Println(a)	// [[55]]
+```
+a底层是个数组,这个数组的内容是[]int,也就还是一个地址,指向的是个数组,这个最底层的数组保存的是int数据;*从上面例子来看,二维slice貌似和一维有同样的特性*
+
+
+
+### 源码分析
 > 源码分析 [slice](./slice.md)
+
 
 
 ## map、array和slice的区别与注意点
@@ -359,8 +411,8 @@ func NewArray(elem *Type, bound int64) *Type {
 
 
 ## reference
-> [go源码](https://github.com/golang/go)
-> [深入解析 Go 中 Slice 底层实现](https://halfrost.com/go_slice/#toc-0)
-> [Go之读懂interface的底层设计](https://zhuanlan.zhihu.com/p/109964497)
-> [详解interface和nil](https://blog.csdn.net/kai_ding/article/details/41322473)
+- > [go源码](https://github.com/golang/go)
+- > [深入解析 Go 中 Slice 底层实现](https://halfrost.com/go_slice/#toc-0)
+- > [Go之读懂interface的底层设计](https://zhuanlan.zhihu.com/p/109964497)
+- > [详解interface和nil](https://blog.csdn.net/kai_ding/article/details/41322473)
 

@@ -35,5 +35,11 @@ atomic包的方法保证了对几种基础类型提供原子操作,在多线程�
 
 ### Pool 
 
+#### see
+- [Golang Sync.Pool浅析](https://segmentfault.com/a/1190000019973632)
+- [Golang 的 sync.Pool设计思路与原理](https://blog.csdn.net/u010853261/article/details/90647884)
+- [官方包sync.Pool的实现原理和适用场景](https://blog.csdn.net/yongjian_lian/article/details/42058893?utm_campaign=studygolang.com&utm_medium=studygolang.com&utm_source=studygolang.com)
+- [理解 Sync.Pool 的设计](https://juejin.cn/post/6844903864634720263)
+
 
 
