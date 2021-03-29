@@ -3,3 +3,6 @@
 /test/
 .DS_Store
 /leetcode/test/
+*.html
+*.pprof
+*.log
