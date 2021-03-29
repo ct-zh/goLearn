@@ -2,10 +2,11 @@ package tree
 
 import (
 	"fmt"
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/queue"
 	"math"
 	"strconv"
+
+	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/basic/helper"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/basic/queue"
 )
 
 // 基于leetcode中大部分和树有关题目的结构
