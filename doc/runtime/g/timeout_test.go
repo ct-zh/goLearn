@@ -1,13 +1,4 @@
-package timeout
-
-import (
-	"fmt"
-	"runtime"
-	"time"
-)
-
-// go routine的超时问题与处理方法
-// see [如何退出协程 goroutine (超时场景)](https://geektutu.com/post/hpg-timeout-goroutine.html)
+package g
 
 import (
 	"fmt"
@@ -15,6 +6,9 @@ import (
 	"testing"
 	"time"
 )
+
+// go routine的超时问题与处理方法
+// see [如何退出协程 goroutine (超时场景)](https://geektutu.com/post/hpg-timeout-goroutine.html)
 
 // 例子1： 函数主题timeout设定了1ms的超时时间，而协程doBadThing需要1秒的运行时间；
 // 通过NumGoroutine可以看到此时有1000多个协程，代表子协程都没有退出；
