@@ -14,6 +14,7 @@ go run -race 查看冲突
 - Pool: 多线程共享的item池;[例子](./pool/simple/simple.go)
 
 - [使用sync.Pool来复用对象](https://geektutu.com/post/hpg-sync-pool.html)
+- [sync.Cond条件变量](https://geektutu.com/post/hpg-sync-cond.html)
 
 
 ### atomic
