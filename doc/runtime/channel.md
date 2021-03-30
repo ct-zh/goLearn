@@ -1,4 +1,9 @@
 ## channel
+### channel用法
+- [创建channel](./channel/basic/main.go)
+- [select配合channel](./channel/select/select.go)
+- [如何优雅关闭channel、channel的关闭原则](./channel/closeChan/closeChan.go)
+
 ### channel的结构
 > 从这里开始 start from `src/runtime/chan.go`
 ```go

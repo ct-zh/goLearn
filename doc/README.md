@@ -11,7 +11,7 @@
 - [go语言时间包Time的用法](./time/README.md)
 - [net包解析](./net/README.md)
 - [反射的用法](./reflect/README.md)
-
+- [error错误处理](./error/.)
 
 ## 关于src的一些tips
 ### go目录
