@@ -12,6 +12,7 @@
 - [net包解析](./net/README.md)
 - [反射的用法](./reflect/README.md)
 - [error错误处理](./error/.)
+- [单元测试与基准测试](./testing/README.md)
 
 ## 关于src的一些tips
 ### go目录
@@ -47,10 +48,8 @@
 4. strings
 5. database
 6. net
-7. sync
 8. os
 9. path
-10. reflect
 11. sort
 12. io
 13. bufio
