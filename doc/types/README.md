@@ -295,7 +295,7 @@ fmt.Println(c == nil)	// false
 // todo https://www.cnblogs.com/-lee/p/12807063.html
 
 1. map是hash table实现,无序;
-2. map*不是线程安全的*;
+2. map*不是线程安全的*; (golang 1.9 在sync包里实现了并发安全的map)
 3. hash冲突常用*线性探测*或者*拉链法*
 
    开放定址（线性探测）和拉链的优缺点

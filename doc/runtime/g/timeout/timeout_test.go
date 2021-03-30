@@ -1,6 +1,13 @@
 package timeout
 
+import (
+	"fmt"
+	"runtime"
+	"time"
+)
+
 // go routine的超时问题与处理方法
+// see [如何退出协程 goroutine (超时场景)](https://geektutu.com/post/hpg-timeout-goroutine.html)
 
 import (
 	"fmt"
