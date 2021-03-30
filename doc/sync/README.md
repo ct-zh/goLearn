@@ -13,6 +13,8 @@ go run -race 查看冲突
 - WaitGroup: 父线程用来等待子线程的运行结束;
 - Pool: 多线程共享的item池;[例子](./pool/simple/simple.go)
 
+- [使用sync.Pool来复用对象](https://geektutu.com/post/hpg-sync-pool.html)
+
 
 ### atomic
 atomic包的方法保证了对几种基础类型提供原子操作,在多线程的情况下保证数据的一致性;atomic提供了五类原子操作分别是:
