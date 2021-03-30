@@ -388,17 +388,39 @@ fmt.Println(a)	// [99]
 ```
 因为append触发了扩容操作, 因此foo函数对应的局部变量t底层的array已经变成了另外一个array;所以只有还未扩容前的改动生效了;
 
-如果是二维slice呢?
+### 如果是N维slice呢?
+例子1:
 ```go
-func foo(t [][]int) {
-	t[0][0] = 55
-}
-a := [][]int{{1}}
-foo(a)
-fmt.Println(a)	// [[55]]
+i := make([][]int, 3)
+fmt.Println(i)		// [[] [] []]
+fmt.Println(i[0] == nil)	// true	
+var i2 [][]int
+fmt.Println(i2)		// []
 ```
-a底层是个数组,这个数组的内容是[]int,也就还是一个地址,指向的是个数组,这个最底层的数组保存的是int数据;*从上面例子来看,二维slice貌似和一维有同样的特性*
+1. 使用var申明的是nil切片;
+2. N维数组使用make只会初始化最外面那一层,里面的slice仍然是nil;
 
+例子2:
+```go
+func foo(i [][]int) {
+	i[0] = append(i[0], 2)
+	i = append(i, []int{10})
+	i[0] = append(i[0], 3)
+	fmt.Println("foo", i)	// foo [[0 2 3] [0] [0] [10]]
+}
+i := make([][]int, 3)
+for key := range i {
+	i[key] = make([]int, 1)
+}
+fmt.Println(i)	// [[0] [0] [0]]
+foo(i)
+fmt.Println(i)	// [[0, 2] [0] [0]]
+```
+1. 当执行foo这一行`i[0] = append(i[0], 2)`时: 如下图,i和`foo i`两个切片底层都是指向的array数组,而array数组里存的slice又保存了分别指向3个数组的指针;此时array1发生扩容,地址发生了变化,array第一个slice指向的地址发生变化,外部变量i同样发生变化;
+
+2. 当执行`i = append(i, []int{10})`这一行时,foo i发生扩容操作,此时foo i与i不在指向同一个数组了,因此后面的改动也不会对i生效了;
+
+<img src="./slice.png" width=200px>
 
 
 ### 源码分析
