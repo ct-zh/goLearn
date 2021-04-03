@@ -18,7 +18,9 @@
 - `-race`: 开启竞争检测(测试线程安全必须要加这个参数);
 
 ### 基准测试
-`-bench="<regexp>"`: 执行匹配正则表达式的基准测试(仍然会执行test测试函数,只是说会额外执行benchmark);*和`-run`一样一定要接参数*
+`-bench="<regexp>"`: 执行匹配正则表达式的基准测试;*和`-run`一样一定要接参数*
+
+注意testing仍然会执行test测试函数,如果只做基准测试,建议使用`go test -run=none -bench=xxx`将run匹配不到任何单元测试函数;
 
 1. 通过`-benchtime`参数可以自定义测试时间，例如`go test -v -bench=. -benchtime=5s benchmark_test.go`测试时间设置为5秒(默认测试时间1秒)
 2. 在命令行中添加`-benchmem`参数以显示内存分配情况，参见下面的指令：
@@ -33,15 +35,17 @@
 基准测试使用`ResetTimer`
 
 #### 并行测试
-使用`b.RunParallel`:
+使用`b.RunParallel`,注意在函数内不要使用`b.ResetTimer()`这样的全局函数:
 ```go
 // 相当于 go func
 b.RunParallel(func(pb *testing.PB) {
-    for pb.Next() { // pb.Next 判断是否有更多的迭代要执行
+    // 前期处理工作
+    for pb.Next() { // pb.Next 判断是否有更多的迭代要执行;
         // do something
     }
 })
 ```
+其中`pb.Next()`相当于普通基准测试的`for i := 0; i < b.N; i++`,也就是在1秒内(可以配置)由testing判断循环多少次for里面的代码;
 
 
 ### 代码覆盖率
