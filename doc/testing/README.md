@@ -143,6 +143,9 @@ func Test(t *testing.T) {
 ## 2. pprof 性能测试
 - [性能检测优化实例](./pprof/demo/README.md)
 
+## 3. delve 测试 debug
+https://www.imooc.com/read/87/article/2465#anchor_6
+
 ## go mock
 [demo](./gomock_demo/t1.go)
 

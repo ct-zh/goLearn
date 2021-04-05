@@ -1,11 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"sync"
 )
+
+// QPS测试：
+// 1. 本机： 4核8线程，16GB内存
+// 	wrk -t8 -c500 -d30s 平均QPS在8万多
+//
+// 2. 服务器A 1核 2GB内存 1Mbps带宽
+// 	wrk -t8 -c500 -d30s 平均QPS在700多
+//
+// 3. 服务器B 16核 64GB内存 5Mbps带宽
+// wrk -t8 -c500 -d30s 4000的QPS
 
 var sum int64 = 0
 
@@ -29,7 +38,7 @@ func GetOneProduct() bool {
 	if count%100 == 0 {
 		if sum < productNum {
 			sum += 1
-			fmt.Println(sum)
+			log.Println(sum)
 			return true
 		}
 	}
