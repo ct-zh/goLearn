@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/gorm/common"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/gorm/model"
+
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/gorm/common"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/gorm/model"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
