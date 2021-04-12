@@ -1,3 +1,22 @@
+# pprof 简单用法
+- web服务器
+
+    引入`import _ "net/http/pprof"`, 然后使用`http://localhost:port/debug/pprof/`直接看到当前web服务的状态;
+
+- 服务进程
+
+    同样引入包net/http/pprof，然后在开启另外一个goroutine来开启端口监听:
+    ```go
+    go func() {
+        log.Println(http.ListenAndServe("localhost:6060", nil)) 
+    }()
+    ```
+
+- 程序
+
+    使用`runtime/pprof`包; StartCPUProfile和StopCPUProfile;运行的时候加个参数`--cpuprofile=fabonacci.prof`生成对应的pprof文件;再使用`go tool pprof`分析;
+
+
 # pprof测试优化实例
 
 http://imooc.com/read/87/article/2440#anchor_5

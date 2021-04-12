@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/gorm/common"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/gorm/model"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/gorm/common"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/gorm/model"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -16,7 +17,6 @@ func main() {
 	}
 
 	select1(db)
-
 }
 
 // 新建会话模式测试
