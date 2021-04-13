@@ -3,8 +3,6 @@
 - 1. [基本语法](./base.md)
 - 2. [微服务](./micr/README.md)
 - 3. [爬虫](./crawler/README.md)
-- 4. [一些奇怪的坑(收集中)](./strange/README.md)
-- 5. [golang debug与性能问题](./debug/README.md)
 
 ## example
 - 1. [变量转换](./01variable/convert/README.md)

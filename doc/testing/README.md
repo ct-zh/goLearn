@@ -144,7 +144,12 @@ func Test(t *testing.T) {
 - [性能检测优化实例](./pprof/README.md)
 
 ## 3. delve 测试 debug
+> see [最常用的调试 golang 的 bug 以及性能问题的实践方法？](https://www.kancloud.cn/aceld/golang/1958304)
 https://www.imooc.com/read/87/article/2465#anchor_6
+> https://blog.csdn.net/chosen0ne/article/details/46939259
+> https://blog.csdn.net/weixin_44328662/article/details/89741782
+> https://segmentfault.com/a/1190000019929993?utm_campaign=studygolang.com&utm_medium=studygolang.com&utm_source=studygolang.com
+
 
 ## go mock
 [demo](./gomock_demo/t1.go)
