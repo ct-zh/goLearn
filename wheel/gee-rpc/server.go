@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 
 	"geerpc/codec"
 )
@@ -20,12 +21,17 @@ const MagicNumber = 0x3bef5c
 type Option struct {
 	MagicNumber int        // 用来确认这是一个geerpc请求
 	CodecType   codec.Type // client的编码类型
+
+	// 超时策略
+	ConnectTimeout time.Duration // 连接超时时间， 0代表无限制
+	HandleTimeout  time.Duration // 默认值为 0，即不设限
 }
 
 // 这是一个默认的Option
 var DefaultOption = &Option{
-	MagicNumber: MagicNumber,
-	CodecType:   codec.GobType,
+	MagicNumber:    MagicNumber,
+	CodecType:      codec.GobType,
+	ConnectTimeout: time.Second * 10,
 }
 
 // rpc server，提供若干method

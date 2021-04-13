@@ -1,6 +1,10 @@
 package geerpc
 
-import "log"
+import (
+	"context"
+	"errors"
+	"log"
+)
 
 // 单次调用请求
 type Call struct {
@@ -18,9 +22,15 @@ func (call *Call) done() {
 }
 
 // invoke 调用函数, 并阻塞等待调用完成;
-func (client *Client) Call(serviceMethod string, args, reply interface{}) error {
-	call := <-client.Go(serviceMethod, args, reply, make(chan *Call, 1)).Done
-	return call.Error
+func (client *Client) Call(ctx context.Context, serviceMethod string, args, reply interface{}) error {
+	call := client.Go(serviceMethod, args, reply, make(chan *Call, 1))
+	select {
+	case <-ctx.Done():
+		client.removeCall(call.Seq)
+		return errors.New("rpc client: call failed: " + ctx.Err().Error())
+	case call := <-call.Done:
+		return call.Error
+	}
 }
 
 // Go invokes the function asynchronously. 异步调用函数

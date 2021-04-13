@@ -9,7 +9,15 @@ import (
 	"log"
 	"net"
 	"sync"
+	"time"
 )
+
+// 需要客户端处理超时的地方有：
+//
+// 1. 与服务端建立连接，导致的超时;
+// 2. 发送请求到服务端，写报文导致的超时
+// 3. 等待服务端处理时，等待处理导致的超时（比如服务端已挂死，迟迟不响应）
+// 4. 从服务端接收响应时，读报文导致的超时
 
 // 客户端
 type Client struct {
@@ -25,6 +33,11 @@ type Client struct {
 	shutdown bool // 服务端关闭
 }
 
+type clientResult struct {
+	client *Client
+	err    error
+}
+
 // 这种写法保证 client已经完成了io.Closer的全部接口
 var _ io.Closer = (*Client)(nil)
 
@@ -36,12 +49,19 @@ var ErrShutdown = errors.New("connection is shut down")
 // @address 地址
 // @opts option参数
 func Dial(network, address string, opts ...*Option) (client *Client, err error) {
+	return dialTimeout(NewClient, network, address, opts...)
+}
+
+type newClientFunc func(conn net.Conn, opt *Option) (client *Client, err error)
+
+func dialTimeout(f newClientFunc, network, address string, opts ...*Option) (client *Client, err error) {
 	opt, err := parseOptions(opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	conn, err := net.Dial(network, address)
+	// 超时处理： 如果连接创建超时，将返回错误
+	conn, err := net.DialTimeout(network, address, opt.ConnectTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +73,28 @@ func Dial(network, address string, opts ...*Option) (client *Client, err error) 
 		}
 	}()
 
-	return NewClient(conn, opt)
+	// 使用子协程执行 NewClient , 主协程增加计时器
+	ch := make(chan clientResult)
+	go func() {
+		client, err := f(conn, opt)
+		ch <- clientResult{
+			client: client,
+			err:    err,
+		}
+	}()
+
+	// 为0代表不计超时时间
+	if opt.ConnectTimeout == 0 {
+		result := <-ch
+		return result.client, result.err
+	}
+
+	select {
+	case <-time.After(opt.ConnectTimeout): // 超时逻辑
+		return nil, fmt.Errorf("rpc client: connect timeout: expect within %s", opt.ConnectTimeout)
+	case result := <-ch:
+		return result.client, result.err
+	}
 }
 
 // 解析opt参数, 拼凑出option
