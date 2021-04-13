@@ -3,6 +3,7 @@ package geerpc
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -124,14 +125,14 @@ func (server *Server) ServeConn(conn io.ReadWriteCloser) {
 		return
 	}
 
-	server.serveCodec(f(conn))
+	server.serveCodec(f(conn), &opt)
 }
 
 // 空返回体
 var invalidRequest = struct{}{}
 
 //
-func (server *Server) serveCodec(cc codec.Codec) {
+func (server *Server) serveCodec(cc codec.Codec, opt *Option) {
 	sending := new(sync.Mutex) // 发送锁，防止同一时间有多个协程发送消息
 	wg := new(sync.WaitGroup)  // 保证多协程运行完毕
 	for {
@@ -148,7 +149,7 @@ func (server *Server) serveCodec(cc codec.Codec) {
 
 		// 开启异步调用逻辑
 		wg.Add(1)
-		go server.handleRequest(cc, req, sending, wg)
+		go server.handleRequest(cc, req, sending, wg, opt.HandleTimeout)
 	}
 	wg.Wait()      // 等待所有协程运行完毕
 	_ = cc.Close() // 关闭连接
@@ -216,16 +217,43 @@ func (server *Server) sendResponse(cc codec.Codec, h *codec.Header, body interfa
 }
 
 // 协程处理单个请求
-func (server *Server) handleRequest(cc codec.Codec, req *request, sending *sync.Mutex, wg *sync.WaitGroup) {
+func (server *Server) handleRequest(cc codec.Codec, req *request, sending *sync.Mutex, wg *sync.WaitGroup, timeout time.Duration) {
 	defer wg.Done()
 
-	// 调用请求的服务与方法
-	err := req.svc.call(req.mtype, req.argv, req.replyv)
-	if err != nil {
-		req.h.Error = err.Error()
-		server.sendResponse(cc, req.h, invalidRequest, sending)
+	// 用于接收goroutine的信号, 不用buf chan的原因是在下面超时逻辑需要阻塞掉
+	called := make(chan struct{}) // 代表调用成功
+	sent := make(chan struct{})   // 代表发送成功
+
+	go func() {
+		// 调用请求的服务与方法
+		err := req.svc.call(req.mtype, req.argv, req.replyv)
+		called <- struct{}{}
+		if err != nil {
+			req.h.Error = err.Error()
+			server.sendResponse(cc, req.h, invalidRequest, sending)
+			sent <- struct{}{}
+			return
+		}
+		server.sendResponse(cc, req.h, req.replyv.Interface(), sending)
+		sent <- struct{}{}
+	}()
+
+	// 超时时间为0，阻塞等待调用结束直接返回
+	if timeout == 0 {
+		<-called
+		<-sent
 		return
 	}
 
-	server.sendResponse(cc, req.h, req.replyv.Interface(), sending)
+	// 超时逻辑
+	// 此处阻塞获取计时器或者called的值，如果计时器先到达，则直接运行超时逻辑；
+	// 如果called先到达，则直接运行sent逻辑发送回应
+	// 这样保证了sendResponse只发送一次，要么发送超时逻辑的send，要么发送goroutine里的send
+	select {
+	case <-time.After(timeout):
+		req.h.Error = fmt.Sprintf("rpc server: request handle timeout: expect within %s", timeout)
+		server.sendResponse(cc, req.h, invalidRequest, sending)
+	case <-called:
+		<-sent
+	}
 }
