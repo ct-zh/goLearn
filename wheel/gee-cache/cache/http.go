@@ -3,6 +3,8 @@ package cache
 import (
 	"fmt"
 	"geecache/cache/consistenthash"
+	geecache "geecache/cache/proto"
+	"github.com/golang/protobuf/proto"
 	"log"
 	"net/http"
 	"strings"
@@ -62,8 +64,16 @@ func (p *HttpPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	body, err := proto.Marshal(&geecache.Response{
+		Value: view.ByteSlice(),
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Write(view.ByteSlice())
+	w.Write(body)
 }
 
 // 设置所有节点

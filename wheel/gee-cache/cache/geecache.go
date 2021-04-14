@@ -2,6 +2,7 @@ package cache
 
 import (
 	"fmt"
+	geecache "geecache/cache/proto"
 	"geecache/cache/singleflight"
 	"log"
 	"sync"
@@ -129,9 +130,15 @@ func (g *Group) populateCache(key string, value ByteView) {
 }
 
 func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
-	bytes, err := peer.Get(g.name, key)
+	req := &geecache.Request{
+		Group: g.name,
+		Key:   key,
+	}
+
+	res := &geecache.Response{}
+	err := peer.Get(req, res)
 	if err != nil {
 		return ByteView{}, err
 	}
-	return ByteView{b: bytes}, nil
+	return ByteView{b: res.Value}, nil
 }
