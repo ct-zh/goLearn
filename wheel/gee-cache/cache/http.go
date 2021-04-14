@@ -2,16 +2,25 @@ package cache
 
 import (
 	"fmt"
+	"geecache/cache/consistenthash"
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 )
 
-const defaultBasePath = "/_geecache/"
+const (
+	defaultBasePath = "/_geecache/"
+	defaultReplicas = 50 // 默认50倍虚拟节点
+)
 
 type HttpPool struct {
 	self     string // 用来记录自己的地址，包括主机名/IP 和端口。
 	basePath string // 作为节点间通讯地址的前缀
+
+	mu          sync.Mutex             // 写锁
+	peers       *consistenthash.Map    // 一致性hash map
+	httpGetters map[string]*httpGetter // 远程访问节点map
 }
 
 func NewHttpPool(self string) *HttpPool {
@@ -19,10 +28,6 @@ func NewHttpPool(self string) *HttpPool {
 		self:     self,
 		basePath: defaultBasePath,
 	}
-}
-
-func (p *HttpPool) Log(format string, v ...interface{}) {
-	log.Printf("[Server %s] %s", p.self, fmt.Sprintf(format, v...))
 }
 
 // 启动http服务
@@ -59,4 +64,40 @@ func (p *HttpPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Write(view.ByteSlice())
+}
+
+// 设置所有节点
+// @peers 节点地址
+func (p *HttpPool) Set(peers ...string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	// 创建一致性hash map
+	p.peers = consistenthash.New(defaultReplicas, nil)
+	p.peers.Add(peers...)
+
+	// 创建peer string 与对应的httpGetter映射
+	p.httpGetters = make(map[string]*httpGetter, len(peers))
+	for _, peer := range peers {
+		p.httpGetters[peer] = &httpGetter{baseURL: peer + p.basePath}
+	}
+}
+
+// 选择一个节点
+func (p *HttpPool) PickPeer(key string) (PeerGetter, bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if peer := p.peers.Get(key); peer != "" && peer != p.self {
+		p.Log("Pick peer %s", peer)
+		return p.httpGetters[peer], true
+	}
+	return nil, false
+}
+
+// httpPool实现了PeerPicker接口
+var _ PeerPicker = (*HttpPool)(nil)
+
+func (p *HttpPool) Log(format string, v ...interface{}) {
+	log.Printf("[Server %s] %s", p.self, fmt.Sprintf(format, v...))
 }

@@ -8,6 +8,7 @@ kkk not exist
 */
 
 import (
+	"flag"
 	"fmt"
 	"geecache/cache"
 	"log"
@@ -22,8 +23,33 @@ var db = map[string]string{
 }
 
 func main() {
-	// 创建一个命名空间为 scores， 大小为2^10, 回调函数为xx的cache
-	cache.NewGroup("scores", 2<<10, cache.GetterFunc(
+	var port int
+	var api bool
+	flag.IntVar(&port, "port", 8001, "Geecache server port")
+	flag.BoolVar(&api, "api", false, "Start a api server?")
+	flag.Parse()
+
+	apiAddr := "http://localhost:9999"
+	addrMap := map[int]string{
+		8001: "http://localhost:8001",
+		8002: "http://localhost:8002",
+		8003: "http://localhost:8003",
+	}
+
+	var addrs []string
+	for _, v := range addrMap {
+		addrs = append(addrs, v)
+	}
+
+	gee := createGroup()
+	if api {
+		go startAPIServer(apiAddr, gee)
+	}
+	startCacheServer(addrMap[port], addrs, gee)
+}
+
+func createGroup() *cache.Group {
+	return cache.NewGroup("scores", 2<<10, cache.GetterFunc(
 		func(key string) ([]byte, error) {
 			log.Println("[SlowDB] search key", key)
 			if v, ok := db[key]; ok {
@@ -31,9 +57,32 @@ func main() {
 			}
 			return nil, fmt.Errorf("%s not exist", key)
 		}))
+}
 
-	addr := "localhost:9999"
-	peers := cache.NewHttpPool(addr)
-	log.Println("geecache is running at", addr)
-	log.Fatal(http.ListenAndServe(addr, peers))
+// 启动缓存服务器
+func startCacheServer(addr string, addrs []string, gee *cache.Group) {
+	peers := cache.NewHttpPool(addr) // 创建 HTTPPool
+	peers.Set(addrs...)              // 添加节点信息
+	gee.RegisterPeers(peers)         // 注册到 gee 中
+	log.Println("cache is running at", addr)
+	log.Fatal(http.ListenAndServe(addr[7:], peers)) // 启动 HTTP 服务（共3个端口，8001/8002/8003）
+}
+
+// 启动一个 API 服务（端口 9999），与用户进行交互
+func startAPIServer(apiAddr string, gee *cache.Group) {
+	http.Handle("/api", http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			key := r.URL.Query().Get("key")
+			view, err := gee.Get(key)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/octet-stream")
+			w.Write(view.ByteSlice())
+
+		}))
+	log.Println("fontend server is running at", apiAddr)
+	log.Fatal(http.ListenAndServe(apiAddr[7:], nil))
+
 }
