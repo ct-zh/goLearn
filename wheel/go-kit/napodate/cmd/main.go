@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/go-kit/napodate"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/go-kit/napodate"
 )
 
 func main() {
@@ -21,7 +21,6 @@ func main() {
 
 	ctx := context.Background()
 
-	// our napodate service
 	srv := napodate.NewService()
 	errChan := make(chan error)
 
@@ -31,7 +30,7 @@ func main() {
 		errChan <- fmt.Errorf("%s", <-c)
 	}()
 
-	// 映射端点
+	// 映射服务
 	endpoints := napodate.Endpoints{
 		GetEndPoint:      napodate.MakeGetEndpoint(srv),
 		StatusEndPoint:   napodate.MakeStatusEndpoint(srv),

@@ -1,13 +1,15 @@
 # 分布式缓存GeeCache
 
 > 来源于极客兔兔的[七天从零实现分布式缓存](https://geektutu.com/post/geecache-day4.html)
+> github: [7days-golang](https://github.com/geektutu/7days-golang)
 
 1. 实现了基于*LRU算法*的cache结构；
 2. 实现了并发安全；
 3. 提供http服务；
 4. hash计算使用一致性hash实现;
 5. 实现简单的singleflight缓冲器，在同一时间内一个key只会发起一次请求;
-
+6. 实现了中间层api与peers分布式节点;
+7. 采用protobuf;
 
 ## 一致性hash的实现
 实现的是简单版，使用crc32当作hash函数，计算出来的hash值是int型，不考虑hash冲突等问题；

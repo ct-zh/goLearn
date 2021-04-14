@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-// 在 Go kit 中，必须将服务建模为接口
-// 如下所述，我们将需要三个端点，这些端点将被映射到此接口。
 type Service interface {
 	Status(ctx context.Context) (string, error)
 	Get(ctx context.Context) (string, error)
