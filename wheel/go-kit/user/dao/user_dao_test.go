@@ -3,7 +3,7 @@ package dao
 import (
 	"testing"
 
-	"github.com/LannisterAlwaysPaysHisDebts/lesson38/module2/user/conf"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/go-kit/user/conf"
 )
 
 func TestUserDAOImpl_Save(t *testing.T) {

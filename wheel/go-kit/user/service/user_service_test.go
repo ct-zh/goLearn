@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/LannisterAlwaysPaysHisDebts/lesson38/common/redis"
-	"github.com/LannisterAlwaysPaysHisDebts/lesson38/module2/user/conf"
-	"github.com/LannisterAlwaysPaysHisDebts/lesson38/module2/user/dao"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/go-kit/user/common"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/go-kit/user/conf"
+	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/go-kit/user/dao"
 )
 
 func TestUserServiceImpl_Register(t *testing.T) {
@@ -17,7 +17,7 @@ func TestUserServiceImpl_Register(t *testing.T) {
 	}
 
 	redisConf := conf.InitLocalRedis()
-	err = redis.InitRedis(redisConf.Host, redisConf.Port, redisConf.Passwd)
+	err = common.InitRedis(redisConf.Host, redisConf.Port, redisConf.Passwd)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -49,7 +49,7 @@ func TestUserServiceImpl_Login(t *testing.T) {
 	}
 
 	redisConf := conf.InitLocalRedis()
-	err = redis.InitRedis(redisConf.Host, redisConf.Port, redisConf.Passwd)
+	err = common.InitRedis(redisConf.Host, redisConf.Port, redisConf.Passwd)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()

@@ -3,12 +3,13 @@ module github.com/LannisterAlwaysPaysHisDebts/goLearn
 go 1.14
 
 require (
+	github.com/LannisterAlwaysPaysHisDebts/lesson38 v0.0.0-20210226154644-be7520e7bf8b // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-delve/delve v1.6.0 // indirect
 	github.com/go-kit/kit v0.10.0
 	github.com/go-redsync/redsync v1.4.2
-	github.com/go-sql-driver/mysql v1.5.0 // indirect
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/golang/mock v1.5.0
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe // indirect
