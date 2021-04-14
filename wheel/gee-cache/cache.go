@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// 线程安全的cache操作
 type cache struct {
 	mu         sync.Mutex
 	lru        *lru.Cache

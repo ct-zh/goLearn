@@ -2,6 +2,11 @@ package lru
 
 import "container/list"
 
+// lru算法的实现：
+// 1. cache与ll底层都是指向Element的指针;
+// 2. Element.Value设置为entry
+// 3. 每次Get操作将操作的节点移动到ll尾部；
+// 4. 每次Add操作判断空间是否超限，如果超限则移除掉ll的头部节点对应的数据；
 type Cache struct {
 	maxBytes int64                    // 允许使用的最大内存
 	nbytes   int64                    // 当前已使用的内存
