@@ -1,7 +1,7 @@
-package gee_cache
+package cache
 
 import (
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/gee-cache/lru"
+	"geecache/cache/lru"
 	"sync"
 )
 

@@ -1,6 +1,7 @@
-package gee_cache
+package cache
 
 // lru.value的实现； 存储真实的缓存值; 只读
+// []byte结构比较通用，可以转数字也可以转字符串，更适合网络传输
 type ByteView struct {
 	b []byte
 }
