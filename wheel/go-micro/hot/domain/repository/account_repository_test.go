@@ -13,8 +13,14 @@ func TestGet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	_ = common.InitRedis("127.0.0.1", "6379", "")
 
-	a := NewAccount(db)
+	redis, err := common.GetRedisConn()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	a := NewAccount(db, redis)
 	if data, err := a.Get(1); err != nil {
 		t.Fatal(err)
 	} else {
@@ -27,8 +33,13 @@ func TestGetByAccount(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	_ = common.InitRedis("127.0.0.1", "6379", "")
+	redis, err := common.GetRedisConn()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	a := NewAccount(db)
+	a := NewAccount(db, redis)
 	if data, err := a.GetByAccount("test10"); err != nil {
 		t.Fatal(err)
 	} else {
@@ -41,8 +52,13 @@ func TestUpdateTypeById(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	_ = common.InitRedis("127.0.0.1", "6379", "")
+	redis, err := common.GetRedisConn()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	a := NewAccount(db)
+	a := NewAccount(db, redis)
 	if data, err := a.Get(1); err != nil {
 		t.Fatal(err)
 	} else {

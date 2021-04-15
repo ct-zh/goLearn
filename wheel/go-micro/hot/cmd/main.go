@@ -23,7 +23,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	accountSrv := service.NewAccount(repository.NewAccount(db))
+	_ = common.InitRedis("127.0.0.1", "6379", "")
+	redisConn, err := common.GetRedisConn()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	accountSrv := service.NewAccount(repository.NewAccount(db, redisConn))
 
 	err = hot.RegisterAccountHandler(srv.Server(), &handler.Account{Srv: accountSrv})
 	if err != nil {

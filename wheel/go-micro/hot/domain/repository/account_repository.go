@@ -1,8 +1,15 @@
 package repository
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/gomodule/redigo/redis"
 	"github.com/jinzhu/gorm"
 	"hot/domain/model"
+)
+
+const (
+	RedisCache = "account:%s"
 )
 
 type IAccount interface {
@@ -15,7 +22,12 @@ type IAccount interface {
 }
 
 type Account struct {
-	db *gorm.DB
+	db    *gorm.DB
+	redis redis.Conn
+}
+
+func NewAccount(db *gorm.DB, redis redis.Conn) *Account {
+	return &Account{db: db, redis: redis}
 }
 
 func (a *Account) UpdateTypeById(test *model.FullTableScanTest) error {
@@ -28,10 +40,28 @@ func (a *Account) Get(id int) (*model.FullTableScanTest, error) {
 }
 
 func (a *Account) GetByAccount(s string) (*model.FullTableScanTest, error) {
-	acc := &model.FullTableScanTest{}
-	return acc, a.db.Where("account = ?", s).First(acc).Error
-}
+	cacheKey := fmt.Sprintf(RedisCache, s)
 
-func NewAccount(db *gorm.DB) IAccount {
-	return &Account{db: db}
+	reply, err := a.redis.Do("GET", cacheKey)
+	if err != nil {
+		return nil, err
+	}
+
+	acc := &model.FullTableScanTest{}
+	if reply != nil {
+		err = json.Unmarshal(reply.([]byte), acc)
+		if err != nil {
+			return nil, err
+		}
+		return acc, nil
+	} else {
+		defer func() {
+			cache, err := json.Marshal(acc)
+			if err != nil {
+				return
+			}
+			_, _ = a.redis.Do("SET", cacheKey, cache)
+		}()
+		return acc, a.db.Where("account = ?", s).First(acc).Error
+	}
 }
