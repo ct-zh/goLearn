@@ -14,6 +14,7 @@ require (
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe // indirect
 	github.com/gorilla/mux v1.7.3
+	github.com/hashicorp/consul/api v1.3.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/mailru/easyjson v0.7.7
 	github.com/smartystreets/assertions v1.2.0 // indirect
