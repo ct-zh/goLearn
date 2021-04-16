@@ -4,12 +4,18 @@
 > github: [7days-golang](https://github.com/geektutu/7days-golang)
 
 1. 实现了基于*LRU算法*的cache结构；
-2. 实现了并发安全；
+2. 实现了并发安全 => 加锁；
 3. 提供http服务；
 4. hash计算使用一致性hash实现;
 5. 实现简单的singleflight缓冲器，在同一时间内一个key只会发起一次请求;
 6. 实现了中间层api与peers分布式节点;
 7. 采用protobuf;
+
+## LRU算法实现
+使用的链表实现:
+- 一共有两个结构体, cache和cacheNode; cache由map与list实现,节点都是保存的cacheNode的指针,节约内存;
+- lru算法使用list实现,每次新增时将节点追加到list尾部,更新时则遍历list拿到节点移动到尾部;
+- 如果因为设置内存达到上限或者其他原因触发删除操作,则移除list头部节点,同时从map里面删除对应的数据;
 
 ## 一致性hash的实现
 实现的是简单版，使用crc32当作hash函数，计算出来的hash值是int型，不考虑hash冲突等问题；
@@ -24,6 +30,13 @@
 - 也就是说只要str不变化，服务器处于上线状态，str每次获取的都是同一台服务器
 - 服务器下线，int切片对应的数据删除，str继续找到下一个服务器，不影响用户体验
 
+## singleflight缓解击穿问题
+这里模拟的是singleflight的实现, 存在两个结构体Group与call, Group保存了当前所有call的map,和一个锁; call保存了请求信息与waitGroup:
+- 请求缓存时多套一层Do函数;
+- Do函数的内容是: 先加Group锁,将请求写入map,发起请求,同时call.waitGroup+1;释放锁;
+- 其他请求过来加锁, 发现map里面已经有call了,则解锁并waitGroup.wait等待;
+- 先前的请求拿到数据,写一份在call里面,waitGroup.Done,返回;
+- 其他请求wait解锁,从call里面拿数据,返回;
 
 ## 缓冲雪崩、击穿、穿透的解决办法
 ### 雪崩
