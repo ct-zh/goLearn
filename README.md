@@ -15,13 +15,22 @@
 - [golang面试常见问题](https://github.com/ct-zh/interview/tree/master/go)
 
 ## 第三方文章摘
+- [你所应该知道的A/B测试基础](http://blog.leapoahead.com/2015/08/27/introduction-to-ab-testing/)
+- [让代码审查扮演更好的角色](http://blog.leapoahead.com/2016/10/04/code-review-one-step-further/)
+- [“函数是一等公民”背后的含义](http://blog.leapoahead.com/2015/09/19/function-as-first-class-citizen/)
+- [从开源项目中获得的docker经验](http://blog.leapoahead.com/2015/10/07/docker-lessons-learned-md/)
 
 ### golang基础
 - [for 和 range 的性能比较](https://geektutu.com/post/hpg-range.html)：range在迭代大value的数据时性能很差，因为range给的item是value的拷贝；
 - [切片(slice)性能及陷阱](https://geektutu.com/post/hpg-slice.html)：大切片使用copy替代re-slice防止不被gc；
 - [Reflect反射的性能](https://geektutu.com/post/hpg-reflect.html): 避免使用反射，比如官方json包就是用的反射，可以用[easyjson](https://github.com/mailru/easyjson)代替
 - [字符串拼接性能](https://geektutu.com/post/hpg-string-concat.html): 尽量使用`strings.Builder`来进行字符串拼接;
-
+- [Bilibili 毛剑：Go 业务基础库之 Error ](https://mp.weixin.qq.com/s?__biz=MzA4ODg0NDkzOA==&mid=2247487124&idx=1&sn=0f6141c2ccd9a0abc4baf26e04f0fd4c&source=41#wechat_redirect)
+- [毛剑：Bilibili 的 Go 服务实践（上篇）](https://mp.weixin.qq.com/s?__biz=MzA4ODg0NDkzOA==&mid=2247487505&idx=1&sn=c9de6535528d2102bee364937201f6e6&source=41#wechat_redirect)
+- [毛剑：Bilibili 的 Go 服务实践（下篇）](https://mp.weixin.qq.com/s?__biz=MzA4ODg0NDkzOA==&mid=2247487504&idx=1&sn=9b8663676ee689e0fcd4b990ecf99f3d&source=41#wechat_redirect)
+- [Gopher China 2019 讲师专访-bilibili架构师毛剑 ](https://www.sohu.com/a/303913388_657921)
+- [Gopher China 2019](https://www.bilibili.com/video/BV1c4411g77Y?p=5)
+- [Gopher China 2019 PPT](https://github.com/gopherchina/conference/blob/master/README.md)
 
 ### 并发编程
 - [读写锁与互斥锁的性能比较](https://geektutu.com/post/hpg-mutex.html): 读写锁的读写性能明显比互斥锁更好；*这篇文章里面有一段snyc的源码注释:互斥锁如何实现公平*，不清楚的话看下面这篇；
@@ -40,3 +49,5 @@
 - [死码消除与debug模式](https://geektutu.com/post/hpg-dead-code-elimination.html)
 
 
+## 架构
+- [bilibili技术总监毛剑：B站高可用架构实践](https://zhuanlan.zhihu.com/p/139258985)
