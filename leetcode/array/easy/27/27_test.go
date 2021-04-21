@@ -16,7 +16,7 @@ func Test_removeElement(t *testing.T) {
 		{[]int{0, 1, 2, 2, 3, 0, 4, 2}, 2, 5, []int{0, 1, 3, 0, 4}},
 	}
 	for key, tt := range tests {
-		result := removeElement2(tt.nums, tt.val)
+		result := removeElement(tt.nums, tt.val)
 		if result != tt.result {
 			t.Errorf("[%d] 结果错误，result:%+v answer:%+v", key, result, tt.result)
 		}
