@@ -8,6 +8,8 @@
 - M: 线程, 在进程内核空间中运行
 - P: 处理器processor
 
+> 一般语言可能是GM协程模型，一个线程包含若干协程；对于一个复杂系统，优化的一种方法是加入一个中间件来解除依赖；这里就引入了P作为G和M的中间件。
+
 有关名词:
 1. global run queue, 全局队列,存放等待运行的G;
 2. P的本地队列(local run queue),存放当前P等待运行的G,最大256;
@@ -16,7 +18,7 @@
 
 ### GMP的调度流程
 1. 执行`go func`,也就是新建G;
-2. G加入当前P的本地队列,如果本地队列满了,则需要加入全局队列;
+2. G加入当前P的本地队列最后,如果本地队列满了,则需要加入全局队列;
 3. P从队列里面取出G,给M执行;
 4. 如果执行完毕,则直接返回:
 5. 如果G在时间片内未执行完毕,则放回P的本地列表;
@@ -27,16 +29,16 @@
 ### 调度策略:
 1. work stealing: 当P从队列里取G时,如果队列为空,则去全局队列里取G; 如果都为空, 则P从其他P的队列偷取G;
 2. hand off: 当M因G产生阻塞时,P会去绑定其他空闲的M;
-3. 抢占: Golang不存在抢占, 而是时间片主动让出, 一个G最多连续运行10ms就要重回队列;
+3. 抢占: Golang不存在抢占, 而是时间片主动让出, 一个G最多连续运行10ms就要重回队列;(go1.14实现了抢占式调度)
 
 关于lrq为空时,先去grq里取还是先去偷的问题,网上部分文章含糊不清,可以直接看源码: 版本1.14 `src/runtime/proc.go:findrunnable()`
 ```go
-// local runq
+// local runq 先拿自己本地队列的G
 if gp, inheritTime := runqget(_p_); gp != nil {
   return gp, inheritTime
 }
 
-// global runq
+// global runq 再去拿全局队列的G
 if sched.runqsize != 0 {
   lock(&sched.lock)
   gp := globrunqget(_p_, 0)
@@ -45,10 +47,9 @@ if sched.runqsize != 0 {
     return gp, false
   }
 }
-
 // ...
 
-// Steal work from other P's.
+// Steal work from other P's. 最后去偷其他家的G
 if gp := runqsteal(_p_, p2, stealRunNextG); gp != nil {
   return gp, false
 }

@@ -1,0 +1,1 @@
+给uint做减法： `atomic.AddUint64(&a, ^uint64(0))`

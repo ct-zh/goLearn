@@ -1,29 +1,15 @@
-# slice源码分析
-## slice源码位置
+# slice，go里面的切片
+## 数据结构
 > slice源码: src/runtime/slice.go
 ```go
 type slice struct {
-	array unsafe.Pointer
-	len   int
-	cap   int
+	array unsafe.Pointer	// 指针
+	len   int							// 当前切片长度
+	cap   int							// 容量
 }
 ```
 
-初始化会调用`makeslice`或者`makeslice64`函数;
-```go
-func makeslice(et *_type, len, cap int) unsafe.Pointer {
-	mem, overflow := math.MulUintptr(et.size, uintptr(cap))
-	if overflow || mem > maxAlloc || len < 0 || len > cap {
-		mem, overflow := math.MulUintptr(et.size, uintptr(len))
-		if overflow || mem > maxAlloc || len < 0 {
-			panicmakeslicelen() // 报错:len out of range
-		}
-		panicmakeslicecap() // 报错: cap out of range
-	}
-	return mallocgc(mem, et, true)
-}
-```
-其中`math.MulUintptr`方法判断a*b是否越界;
+
 
 ### nil切片与空切片
 ```go
@@ -46,33 +32,15 @@ b := []int{}    // 空切片
 
 ```go
 // growtslice处理附加期间的切片增长。
-// 它被传递切片元素类型、旧切片和所需的新最小容量，并返回至少具有该容量的新切片，旧数据被复制到其中。新切片的长度设置为旧切片的长度，没有达到新要求的容量。这是为了codegen的方便。旧切片的长度立即用于计算在追加期间在何处写入新值。
 // et: 数据类型; old: 需要扩容的切片; cap: 目标申请的容量;
 func growslice(et *_type, old slice, cap int) slice {
-    if raceenabled {
-		// ...
-	}
-	if msanenabled {
-		// ...
-	}
-
-    if cap < old.cap {  // 新容量比旧容量小,直接panic
-		panic(errorString("growslice: cap out of range"))
-	}
-
-	if et.size == 0 {   // size为0 直接返回一个nil切片
-		return slice{unsafe.Pointer(&zerobase), old.len, cap}
-	}
-    // ...
 }
 ```
 
 ### 扩容策略:
 > *注意：扩容针对的是slice的容量，而不是针对原来数组的长度。*
 
-`growslice()`方法继续往下,即可看到扩容策略:
 ```go
-// ...
 // newcap 是最终扩容的大小
 newcap := old.cap
 doublecap := newcap + newcap
@@ -104,38 +72,17 @@ if cap > doublecap {        // 1. 如果扩容大小 大于 旧容量的两倍
 > uintptr是用来保存指针的类型; 整型,可以足够保存指针的值的范围,在32平台下为4字节,在64位平台下是8字节;
 
 ```go    
-var overflow bool
-
 // lenmem: 旧slice长度
 // newlenmem: 新容量
 // capmem: 
 var lenmem, newlenmem, capmem uintptr
 switch {
-case et.size == 1:  // 不需要做任何除法/乘法
-    lenmem = uintptr(old.len)
-    newlenmem = uintptr(cap)
-    capmem = roundupsize(uintptr(newcap))
-    overflow = uintptr(newcap) > maxAlloc
-    newcap = int(capmem)
-case et.size == sys.PtrSize:    // 编译器将把除法/乘法优化为一个常数的移位;
-    lenmem = uintptr(old.len) * sys.PtrSize
-    newlenmem = uintptr(cap) * sys.PtrSize
-    capmem = roundupsize(uintptr(newcap) * sys.PtrSize)
-    overflow = uintptr(newcap) > maxAlloc/sys.PtrSize
-    newcap = int(capmem / sys.PtrSize)
-case isPowerOfTwo(et.size):     // 
-    var shift uintptr
-    if sys.PtrSize == 8 {
-        // Mask shift for better code generation.
-        shift = uintptr(sys.Ctz64(uint64(et.size))) & 63
-    } else {
-        shift = uintptr(sys.Ctz32(uint32(et.size))) & 31
-    }
-    lenmem = uintptr(old.len) << shift
-    newlenmem = uintptr(cap) << shift
-    capmem = roundupsize(uintptr(newcap) << shift)
-    overflow = uintptr(newcap) > (maxAlloc >> shift)
-    newcap = int(capmem >> shift)
+case et.size == 1:
+   
+case et.size == sys.PtrSize:
+    
+case isPowerOfTwo(et.size):
+    
 default:
     lenmem = uintptr(old.len) * et.size
     newlenmem = uintptr(cap) * et.size
@@ -144,22 +91,12 @@ default:
     newcap = int(capmem / et.size)
 }
 
-// 除了capmem>maxAlloc外
-// 还需要检查溢出 防止可用于触发segfault的溢出
-if overflow || capmem > maxAlloc {
-    panic(errorString("growslice: cap out of range"))
-}
-```
-
-```go
-func isPowerOfTwo(x uintptr) bool {
-	return x&(x-1) == 0
-}
 ```
 
 
 ### 给底层数组分配空间
-`growslice()`方法继续往下, 申请一个新的数组, 将旧数组按照大小移动到新开辟的内存中:
+`growslice()`继续往下, 申请一个新的数组, 将旧数组按照大小移动到新开辟的内存中:
+
 ```go
 var p unsafe.Pointer
 if et.ptrdata == 0 {    
@@ -214,8 +151,48 @@ func slicecopy(to, fm slice, width uintptr) int {
 }
 ```
 
+## slice常见坑
+### slice是引用类型而不是值类型
+slice是引用类型, 初学者可能会碰到一个坑,例如:
+```go
+func foo(t []int) {
+	t[0] = 99
+}
+a := []int{1}
+foo(a) // a = [99]	
+```
+因为是引用类型,底层数组里0的位置修改成了99,所以`a[0]`就变成了99;
+
+但是如果进行append操作:
+```go
+func foo(t []int) {
+	t[0] = 99
+	t = append(t, 100)
+	t[0] = 101
+}
+a := []int{1}
+foo(a)
+fmt.Println(a)	// [99]
+```
+因为append触发了扩容操作, 因此foo函数对应的局部变量t底层的array已经变成了另外一个array;所以只有还未扩容前的改动生效了;
+
+### N维slice触发扩容呢
+1. N维slice使用make只会初始化最外面那一层,里面的slice仍然是nil;
+2. N维slice底层仍然是数组，数组内容是slice；
+
+### 切片长度的问题 
+
+思考一下，为什么最后`a[5]`结果为3？
+
+```go
+a := make([]int, 4, 8)		// 0 0 0 0 
+b := append(a, 4, 4, 4)		// 0 0 0 0 4 4 4
+a = append(a, 3, 3, 3)		// 0 0 0 0 3 3 3
+fmt.Println(a[5])	// 3
+```
 
 ## reference
+
 > [go slice源码](https://github.com/golang/go/blob/go1.14.15/src/runtime/slice.go)
 > [深入解析 Go 中 Slice 底层实现](https://halfrost.com/go_slice/#toc-0)
 > [slice切片源码解析](https://github.com/friendlyhank/toBeTopgopher/blob/master/golang/source/golang%E4%B9%8Bslice%E5%88%87%E7%89%87%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90.md)
