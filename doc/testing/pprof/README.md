@@ -1,4 +1,9 @@
-# pprof 简单用法
+# pprof 
+## 快速使用
+- 压测生成文件：`go test -run=^$ -bench=^{压测函数名}$ -cpuprofile=cpu.prof/-memprofile=mem.prof`；
+- `go tool pprof`
+
+## 用法
 - web服务器
 
     引入`import _ "net/http/pprof"`, 然后使用`http://localhost:port/debug/pprof/`直接看到当前web服务的状态;
@@ -82,7 +87,7 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 > 在go tool pprof的输出中有一行为Type: alloc_space。这行的含义是当前 pprof 将呈现的是程序运行期间的所有内存分配的采样数据（即使该分配的内存在最后一次采样时已经被释放）; 我们还可以让 pprof 将Type切换为inuse_space，这个类型表示的是内存数据采样结束时依然在用的内存。切换命令:`sample_index = inuse_space`
 
     `783.05MB 38.15% 38.15%  2052.44MB   100%  ...handleHi`
-
+    
     ```
     362.52MB     1.48GB     30:	w.Write([]byte("<h1 style='color: " + r.FormValue("color") +
     420.52MB   449.52MB     31:		"'>Welcome!</h1>You are visitor number " + fmt.Sprint(visitNum) + "!"))
