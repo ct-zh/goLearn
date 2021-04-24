@@ -15,6 +15,11 @@ func Test_merge(t *testing.T) {
 		{nums1: []int{1, 2, 3, 0, 0, 0}, m: 3,
 			nums2: []int{2, 5, 6}, n: 3,
 			result: []int{1, 2, 2, 3, 5, 6}},
+		{
+			nums1: []int{0}, m: 0,
+			nums2: []int{1}, n: 1,
+			result: []int{1},
+		},
 	}
 	for key, tt := range tests {
 		merge2(tt.nums1, tt.m, tt.nums2, tt.n)
