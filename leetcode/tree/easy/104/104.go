@@ -1,6 +1,6 @@
 package _104
 
-import Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
+import Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/basic/helper"
 
 type TreeNode struct {
 	Val   int
