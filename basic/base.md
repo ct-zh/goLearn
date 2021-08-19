@@ -540,6 +540,7 @@ go func(i int) {
     2. `uname -m`: 架构
     3. `arch`: 
     4. `file /bin/cat`
+    5. 获取系统类型： `lsb_release -d`
 
 2. 增加编译参数:
     1. 编译Windows平台的64位可执行程序
