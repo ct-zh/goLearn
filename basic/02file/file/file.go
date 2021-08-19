@@ -7,20 +7,20 @@ import (
 	"os"
 )
 
-// 获取当前目录
+// Pwd 获取当前目录
 func Pwd() string {
 	dir, _ := os.Getwd()
 	return dir
 }
 
-// 判断路径是否存在
+// IsExist 判断路径是否存在
 // path 绝对路径
 func IsExist(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil || os.IsExist(err)
 }
 
-// 判断路径是否是一个文件夹
+// IsDir 判断路径是否是一个文件夹
 func IsDir(path string) bool {
 	dir, err := os.Stat(path)
 	if err != nil {
@@ -29,7 +29,7 @@ func IsDir(path string) bool {
 	return dir.IsDir()
 }
 
-// 判断路径是否是一个文件
+// IsFile 判断路径是否是一个文件
 func IsFile(path string) bool {
 	file, err := os.Stat(path)
 	if err != nil {
@@ -38,7 +38,7 @@ func IsFile(path string) bool {
 	return !file.IsDir()
 }
 
-// 获取目录列表
+// ReadPath 获取目录列表
 func ReadPath(path string) ([]string, error) {
 	dir, err := os.Stat(path)
 	if err != nil {
@@ -66,14 +66,14 @@ func ReadPath(path string) ([]string, error) {
 	return contents, nil
 }
 
-// 读取文件1,返回的是byte数组,使用range遍历
+// ReadFile 读取文件1,返回的是byte数组,使用range遍历
 func ReadFile(filename string) ([]byte, error) {
 	// ioutil.ReadAll() 这个函数需要 os.Open()传一个io.Reader
 	// ioutil.ReadFile() 只需要path string
 	return ioutil.ReadFile(filename)
 }
 
-// 读取文件2 分块读取
+// ReadFileByBlock 读取文件2 分块读取
 // 如果文件过大可以考虑这种方法  可在速度和内存占用之间取得很好的平衡。
 // filename: 文件路径地址 path string
 // bufSize: 读取的块大小
@@ -84,7 +84,12 @@ func ReadFileByBlock(filename string, bufSize int, hookFn func([]byte)) {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(f)
 
 	buf := make([]byte, bufSize) // buf用来接受文件的数据
 	bfRd := bufio.NewReader(f)   // 创建reader
@@ -103,14 +108,19 @@ func ReadFileByBlock(filename string, bufSize int, hookFn func([]byte)) {
 	}
 }
 
-// 逐行读取文件
+// ReadFileByLine 逐行读取文件
 // 这个可能更加常用于业务逻辑 根据go语言bufio类的备注，使用scanner可能更好
 func ReadFileByLine(filename string, hookFn func([]byte)) {
 	f, err := os.Open(filename)
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(f)
 
 	scan := bufio.NewScanner(f)
 	for scan.Scan() {
