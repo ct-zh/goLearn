@@ -2,7 +2,7 @@ package mst
 
 import (
 	"fmt"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
+	"github.com/ct-zh/goLearn/leetcode/basic/graph/weightGraph"
 	"testing"
 )
 

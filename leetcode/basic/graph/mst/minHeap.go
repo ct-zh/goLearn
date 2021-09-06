@@ -1,6 +1,6 @@
 package mst
 
-import "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
+import "github.com/ct-zh/goLearn/leetcode/basic/graph/weightGraph"
 
 // 用于lazyPrim的最小堆
 type minHeap struct {

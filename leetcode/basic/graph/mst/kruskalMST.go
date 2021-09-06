@@ -1,7 +1,7 @@
 package mst
 
 import (
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
+	"github.com/ct-zh/goLearn/leetcode/basic/graph/weightGraph"
 )
 
 // 补充： Vyssotsky's Algorithm 算法

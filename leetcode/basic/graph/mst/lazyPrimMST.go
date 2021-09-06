@@ -1,6 +1,6 @@
 package mst
 
-import "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
+import "github.com/ct-zh/goLearn/leetcode/basic/graph/weightGraph"
 
 // 最小生成树问题：（只针对带权图连通图）
 // 存在一棵树 连接了图里的所有节点,所有边的权值相加是最小的

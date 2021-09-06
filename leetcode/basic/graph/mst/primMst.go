@@ -1,6 +1,6 @@
 package mst
 
-import "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
+import "github.com/ct-zh/goLearn/leetcode/basic/graph/weightGraph"
 
 // prim 的时间复杂度为O(ELogV) 相比lazy prim要更快些
 
