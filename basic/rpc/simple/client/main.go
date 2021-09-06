@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/rpc/jsonrpc"
 
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/basic/rpc/simple"
+	"github.com/ct-zh/goLearn/basic/rpc/simple"
 )
 
 // rpc远程调用div方法
