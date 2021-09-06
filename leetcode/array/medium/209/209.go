@@ -1,6 +1,6 @@
 package _209
 
-import Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
+import Helper "github.com/ct-zh/goLearn/leetcode/basic/helper"
 
 // https://leetcode-cn.com/problems/minimum-size-subarray-sum/
 

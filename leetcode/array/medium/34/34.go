@@ -1,7 +1,7 @@
 package _34
 
 import (
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/basic/helper"
+	Helper "github.com/ct-zh/goLearn/leetcode/basic/helper"
 )
 
 // 思路1，二分算法
