@@ -1,8 +1,8 @@
 package shortest
 
 import (
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/stack"
+	"github.com/ct-zh/goLearn/leetcode/basic/graph/weightGraph"
+	"github.com/ct-zh/goLearn/leetcode/basic/stack"
 )
 
 // 有权图的最短路径问题：
@@ -65,7 +65,7 @@ func NewDijkstra(g *weightGraph.WeightGraph, s int) *dijkstra {
 	// dijkstra
 	d.distTo[s] = 0
 	d.marked[s] = true
-	ipq.Insert(s, d.distTo[s])
+	ipq.Insert(s, d.from[s])
 	for {
 		if ipq.IsEmpty() {
 			break
@@ -93,9 +93,9 @@ func NewDijkstra(g *weightGraph.WeightGraph, s int) *dijkstra {
 
 					// 如果最小索引堆中已经包含了w节点，则更新其权值
 					if ipq.Contain(w) {
-						ipq.Change(w, d.distTo[w])
+						ipq.Change(w, d.from[w])
 					} else {
-						ipq.Insert(w, d.distTo[w])
+						ipq.Insert(w, d.from[w])
 					}
 				}
 			}

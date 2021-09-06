@@ -1,7 +1,7 @@
 package knapsack
 
 import (
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
+	Helper "github.com/ct-zh/goLearn/leetcode/basic/helper"
 )
 
 // 0-1 背包问题

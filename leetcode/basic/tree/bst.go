@@ -2,7 +2,7 @@ package tree
 
 import (
 	"fmt"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/basic/queue"
+	"github.com/ct-zh/goLearn/leetcode/basic/queue"
 )
 
 // 二分搜索树的大部分方法都可以使用递归来实现

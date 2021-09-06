@@ -1,6 +1,6 @@
 package _102
 
-import "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/queue"
+import "github.com/ct-zh/goLearn/leetcode/basic/queue"
 
 type TreeNode struct {
 	Val   int

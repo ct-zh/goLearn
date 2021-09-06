@@ -1,7 +1,7 @@
 package _144
 
 import (
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/basic/stack"
+	"github.com/ct-zh/goLearn/leetcode/basic/stack"
 )
 
 func preorderTraversal(root *TreeNode) []int {

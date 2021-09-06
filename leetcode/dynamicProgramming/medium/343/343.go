@@ -1,6 +1,6 @@
 package _343
 
-import Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
+import Helper "github.com/ct-zh/goLearn/leetcode/basic/helper"
 
 // 暴力解法： 回溯遍历将一个数分割的所有可能性 O(2^n)
 

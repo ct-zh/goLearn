@@ -1,8 +1,8 @@
 package shortest
 
 import (
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/stack"
+	"github.com/ct-zh/goLearn/leetcode/basic/graph/weightGraph"
+	"github.com/ct-zh/goLearn/leetcode/basic/stack"
 )
 
 // 负权边和Bellman-Ford算法

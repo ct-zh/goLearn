@@ -2,8 +2,8 @@ package _279
 
 import (
 	"fmt"
-	Helper "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/helper"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/queue"
+	Helper "github.com/ct-zh/goLearn/leetcode/basic/helper"
+	"github.com/ct-zh/goLearn/leetcode/basic/queue"
 	"math"
 )
 

@@ -1,6 +1,6 @@
 package shortest
 
-import "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/graph/weightGraph"
+import "github.com/ct-zh/goLearn/leetcode/basic/graph/weightGraph"
 
 // 最小索引堆
 type indexMinHeap struct {
