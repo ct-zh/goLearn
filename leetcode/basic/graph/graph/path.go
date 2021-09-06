@@ -2,7 +2,7 @@ package graph
 
 import (
 	"fmt"
-	queue2 "github.com/LannisterAlwaysPaysHisDebts/goLearn/leetcode/base/queue"
+	queue2 "github.com/ct-zh/goLearn/leetcode/basic/queue"
 )
 
 // 从s开始寻路
