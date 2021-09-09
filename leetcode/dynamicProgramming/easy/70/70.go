@@ -6,6 +6,7 @@ func climbStairs(n int) int {
 	for i := 0; i < n+1; i++ {
 		s.memo[i] = -1
 	}
+	s.calcWays(n)
 	return s.memo[n]
 }
 
