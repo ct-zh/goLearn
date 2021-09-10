@@ -16,6 +16,18 @@ func getTests() []tests {
 	return []tests{
 		{"t1", args{n: 2}, 2},
 		{"t2", args{n: 3}, 3},
+		{"t3", args{n: 5}, 8},
+		{"t4", args{n: 20}, 10946},
+	}
+}
+
+func Test_climbStairsByRecursion(t *testing.T) {
+	for _, tt := range getTests() {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := climbStairsByRecursion(tt.args.n); got != tt.want {
+				t.Errorf("climbStairs() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }
 
@@ -36,6 +48,14 @@ func Test_climbStairs2(t *testing.T) {
 				t.Errorf("climbStairs() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func Benchmark_climbStairsByRecursion(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		for _, tt := range getTests() {
+			climbStairsByRecursion(tt.args.n)
+		}
 	}
 }
 
