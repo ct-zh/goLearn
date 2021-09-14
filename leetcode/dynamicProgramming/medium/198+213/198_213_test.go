@@ -17,6 +17,7 @@ func get198Tests() []tests {
 		{"t1", args{[]int{1, 2, 3, 1}}, 4},
 		{"t2", args{[]int{2, 7, 9, 3, 1}}, 12},
 		{"t3", args{[]int{0}}, 0},
+		{"t4", args{[]int{2, 1, 1, 2}}, 4},
 	}
 }
 
@@ -26,6 +27,7 @@ func get213Tests() []tests {
 		{"t2", args{[]int{1, 2, 3, 1}}, 4},
 		{"t3", args{[]int{0}}, 0},
 		{"t4", args{[]int{2, 7, 9, 3, 1}}, 11},
+		{"t5", args{[]int{1, 3, 1, 3, 100}}, 103},
 	}
 }
 

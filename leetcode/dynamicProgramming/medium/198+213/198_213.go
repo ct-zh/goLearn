@@ -7,21 +7,17 @@ package _98_213
 
 func rob(nums []int) int {
 	l := len(nums)
+	if l == 0 {
+		return 0
+	}
 	if l == 1 {
 		return nums[0]
 	}
-	if l == 2 {
-		return max(nums[0], nums[1])
-	}
-
-	p, q, r := 0, nums[0], nums[1]
+	p, q := nums[0], max(nums[0], nums[1])
 	for i := 2; i < l; i++ {
-		p = q
-		q = r
-		r = max(p+nums[i], q)
+		p, q = q, max(p+nums[i], q)
 	}
-
-	return r
+	return q
 }
 
 // 对于213题，因为首尾相连，计算区间会存在两种情况
@@ -29,6 +25,9 @@ func rob(nums []int) int {
 
 func rob2(nums []int) int {
 	l := len(nums)
+	if l == 0 {
+		return 0
+	}
 	if l == 1 {
 		return nums[0]
 	}
@@ -36,21 +35,17 @@ func rob2(nums []int) int {
 		return max(nums[0], nums[1])
 	}
 
-	p1, q1, r1 := 0, nums[0], nums[1]
+	p1, q1 := nums[0], max(nums[0], nums[1])
 	for i := 2; i <= l-2; i++ {
-		p1 = q1
-		q1 = r1
-		r1 = max(p1+nums[i], q1)
+		p1, q1 = q1, max(p1+nums[i], q1)
 	}
 
-	p2, q2, r2 := 0, nums[1], nums[2]
+	p2, q2 := nums[1], max(nums[1], nums[2])
 	for i := 3; i <= l-1; i++ {
-		p2 = q2
-		q2 = r2
-		r2 = max(p2+nums[i], q2)
+		p2, q2 = q2, max(p2+nums[i], q2)
 	}
 
-	return max(r1, r2)
+	return max(q1, q2)
 }
 
 func max(a int, b int) int {
