@@ -1,8 +1,42 @@
-package leetcode53
+package _1maxSubArr
+
+import Helper "github.com/ct-zh/goLearn/leetcode/basic/helper"
 
 //链接：https://leetcode-cn.com/problems/maximum-subarray/solution/zui-da-zi-xu-he-by-leetcode-solution/
 
-// 动态规划解题思路：
+// 法1. 滑动窗口 暴力算法; 时间复杂度 O(n^3)
+func maxSubArrayForce(nums []int) int {
+	l := len(nums)
+	maxInt := nums[0]
+	for k1 := range nums {
+		for i := k1 + 1; i < l; i++ {
+			sub := nums[k1:i]
+			subSum := Helper.SumInt(sub)
+			if maxInt < subSum {
+				maxInt = subSum
+			}
+		}
+	}
+	return maxInt
+}
+
+// 法2. 暴力算法优化 直接累加
+func maxSubArrayForceBetter(nums []int) int {
+	l := len(nums)
+	maxInt := nums[0]
+	for i := range nums {
+		sumSub := 0
+		for i2 := i; i2 < l; i2++ {
+			sumSub += nums[i2]
+			if sumSub > maxInt {
+				maxInt = sumSub
+			}
+		}
+	}
+	return maxInt
+}
+
+// 法3. 动态规划解题思路：
 // 假设，求f(x)是第x个数结尾的最大子序和；
 // 那么问题可以转变为比较f(x)大还是f(x-1)大；并且f(x) = num[x] + f(x-1);
 // 状态转移方程为 f(x) = max(f(x), f(x-1)) = max(f(x-1) + num[x], f(x-1))
@@ -19,6 +53,16 @@ func maxSubArray(nums []int) int {
 		}
 	}
 	return max
+}
+
+// 法4 kadane 算法
+func maxSubArrayKadane(nums []int) int {
+	maxEnding, maxSubSum := nums[0], nums[0]
+	for i := 1; i < len(nums); i++ {
+		maxEnding = max(maxEnding+nums[i], nums[i])
+		maxSubSum = max(maxEnding, maxSubSum)
+	}
+	return maxSubSum
 }
 
 // 分治法解题思路：
