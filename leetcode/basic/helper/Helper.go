@@ -18,7 +18,7 @@ func GenerateRandArr(n int, rangeL int, rangeR int) []int {
 	return arr
 }
 
-// 生成元素数量为n,元素在[rangeL,rangeR]区间的 整数集合
+// GenerateRandomArray 生成元素数量为n,元素在[rangeL,rangeR]区间的 整数集合
 func GenerateRandomArray(n int, rangeL int, rangeR int) []int {
 	if rangeL > rangeR {
 		return nil
@@ -35,7 +35,7 @@ func GenerateRandomArray(n int, rangeL int, rangeR int) []int {
 	return arr
 }
 
-// 生成近似顺序的整数数组
+// GenerateNearlyArray 生成近似顺序的整数数组
 // n: 数组大小; swapTimes: 数组打乱次数;
 func GenerateNearlyArray(n int, swapTimes int) []int {
 	arr := make([]int, n)
@@ -54,7 +54,7 @@ func GenerateNearlyArray(n int, swapTimes int) []int {
 	return arr
 }
 
-// 检查数组是否按照升序排序的
+// CheckSort 检查数组是否按照升序排序的
 func CheckSort(arr []int) bool {
 	for i := 1; i < len(arr); i++ {
 		if arr[i] < arr[i-1] {
@@ -102,7 +102,7 @@ func MinInt2(args ...int) int {
 	return min
 }
 
-// 去掉非数字与字母的部分，并将大写字母转换为小写字母
+// SimplifyStr 去掉非数字与字母的部分，并将大写字母转换为小写字母
 // a-z: 97-122
 // A-Z: 65-90
 // 0-9: 48-57
@@ -122,9 +122,18 @@ func SimplifyStr(s string) string {
 }
 
 func CopyData(v map[int]int) map[int]int {
-	new := map[int]int{}
+	newMap := map[int]int{}
 	for k, v := range v {
-		new[k] = v
+		newMap[k] = v
 	}
-	return new
+	return newMap
+}
+
+// SumInt 整数求和
+func SumInt(nums []int) int {
+	sum := 0
+	for _, num := range nums {
+		sum += num
+	}
+	return sum
 }
