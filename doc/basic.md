@@ -1,91 +1,4 @@
-# 基础语法
-## golang基础知识
-- [菜鸟教程](https://www.runoob.com/go/go-tutorial.html)
-- [编程网](http://c.biancheng.net/golang/intro/)
-
-## 位移符号
-y << x 代表将y的二进制左移x位, 比较常用的是以2为底的位移操作, 如:2的100次方`2 << 100`
-```go
-const (
-        j = 1 << iota	// 1=1 => 左移0位, 仍然是1
-        k = 3 << iota	// 3=11 => 左移1位, 110, 4+2=6
-        l				// 3=11 => 左移2位, 1100, 8+4=12
-        n				// 3=11 => 左移3位, 11000, 16+8=24
-    )
-    println(j, k, l, n)	// 1, 6, 12, 24
-```
-
-## 闭包
-函数`getSequence`的局部变量i逃逸到堆上,匿名函数底层保存了变量i的指针;
-```go
-nextNumber := getSequence()
-fmt.Println(nextNumber())       // 1
-fmt.Println(nextNumber())       // 2
-fmt.Println(nextNumber())       // 3
-nextNumber1 := getSequence()    
-fmt.Println(nextNumber1())      // 1
-fmt.Println(nextNumber1())      // 2
-
-func getSequence() func() int {
-    i := 0
-    return func() int {
-        i += 1
-        return i
-    }
-}
-```
-
-
-## go引入c文件
-需要引入包：C, 然后用注释的写法： `// #include c文件`, 再使用`C.function()`来调用
-```go
-// #include "foo.c"
-import "C"
-
-func main() {
-	C.foo()
-}
-```
-
-## 编码规范
-1. 格式化规范：使用gofmt 或者 goimport；
-2. 一行最长不要超过80个字符；
-3. go vet 工具帮我们静态分析源码各种问题；
-4. import规范：
-	建议采用如下格式：
-	```go
-	import (
-		"encoding/json"
-		"strings"
-
-		"myproject/models"
-		"myproject/controller"
-		
-		"github.com/astaxie/beego"
-		"github.com/go-sql-driver/mysql"
-	)
-	```
-	有顺序地引入包， 不同类型使用换行符分离，第一种是标准库，第二种是项目包，第三种是第三方包。*并且不要使用相对路径*
-5. 变量申明：使用驼峰命名，多个变量申明放在一起；函数外部的全局变量申明必须使用var，不然容易踩到作用域的坑；
-6. 闭包循环的问题：
-    ```go
-    for i := 0; i <= 5; i++ {
-        // 错误的写法，打印出来的都是6
-        go func() {
-            fmt.Println(i)
-        }()
-
-        // 正确的写法
-        go func(i int) {
-            fmt.Println(i)
-        }(i)
-    }
-    time.Sleep(time.Second)
-    ```
-7. 不要随意使用panic，而是使用`log.Fatal`来记录错误
-8. 使用`{}`来更好地区分代码块(go使用`{}`来划分变量的作用范围)
-
-
+# basic
 ## 数据类型
 ### go基础的数据类型
 1. bool值: true, false
@@ -96,12 +9,12 @@ func main() {
 6. strcut
 7. func
 8. Channel
-9. slice   
+9. slice
 10. map
 11. interface
 
 > 其中值类型有: bool、数字、字符串、struct、指针、数组;
-> 
+>
 > 引用类型有: channel、func、slice、map、interface
 
 
@@ -165,7 +78,7 @@ switch value := element.(type) {
 **unicode字符集**为每一个字符分配一个唯一的id,称为码位(code point), 对于上面的「你」字,码位是20320,转换为十六进制为`4f60`, 在unicode编码中为`\u4f60`,在utf-8编码中为`&#x4F60`;
 
 1. 测试1
-    中文字符串,转换成byte,一个中文字符占用了3byte. 单个item的数据类型是byte,也就是int8:
+   中文字符串,转换成byte,一个中文字符占用了3byte. 单个item的数据类型是byte,也就是int8:
     ```go
     s := "yes你好你好!"
     for k, b := range []byte(s) { // utf-8编码
@@ -176,7 +89,7 @@ switch value := element.(type) {
 
 
 2. 测试2
-    如果直接range,循环里单个item的类型是int32,如果想打印出字符串,直接将item转换为string即可`fmt.Printf("%s ", string(value))`
+   如果直接range,循环里单个item的类型是int32,如果想打印出字符串,直接将item转换为string即可`fmt.Printf("%s ", string(value))`
     ```go
     for key, value := range s {
         fmt.Printf("%d:%X ", key, value)
@@ -185,7 +98,7 @@ switch value := element.(type) {
     ```
 
 3. 测试3
-在测试2中key值不是连续的,如果想获取连续的key,应该将s转换成rune:
+   在测试2中key值不是连续的,如果想获取连续的key,应该将s转换成rune:
 ```go
 for key, value := range []rune(s) {
 	fmt.Printf("%d %c \n", key, value)
@@ -226,9 +139,9 @@ for key, value := range []rune(s) {
 
 ## 错误处理
 1. 活用defer调用:
-    在打开一个资源之后记得defer调用close, 防止函数提前返回, 
-    注意1: defer是个栈,后defer的先执行. 即使是panic也能触发defer.
-    注意2: 参数在defer语句进行计算, 如下代码,i的打印会从0开始, 而不是打印100行100
+   在打开一个资源之后记得defer调用close, 防止函数提前返回,
+   注意1: defer是个栈,后defer的先执行. 即使是panic也能触发defer.
+   注意2: 参数在defer语句进行计算, 如下代码,i的打印会从0开始, 而不是打印100行100
     ```go
     for i:=0; i < 100;i++ {
         defer fmt.Println(i) 
@@ -237,25 +150,25 @@ for key, value := range []rune(s) {
 
 2. panic
 > 内建函数panic停止当前Go程的正常执行。当函数F调用panic时，F的正常执行就会立刻停止。F中defer的所有函数先入后出执行后，F返回给其调用者G。G如同F一样行动，层层返回，直到该Go程中所有函数都按相反的顺序停止执行。之后，程序被终止，而错误情况会被报告，包括引发该恐慌的实参值，此终止序列称为恐慌过程。
-    - 停止当前函数执行
-    - 一直向上返回,执行每一层的defer
-    - 如果没有遇见recover, 则程序退出
+- 停止当前函数执行
+- 一直向上返回,执行每一层的defer
+- 如果没有遇见recover, 则程序退出
 
 3. recover
 > 内建函数recover允许程序管理恐慌过程中的Go程。在defer的函数中，执行recover调用会取回传至panic调用的错误值，恢复正常执行，停止恐慌过程。若recover在defer的函数之外被调用，它将不会停止恐慌过程序列。在此情况下，或当该Go程不在恐慌过程中时，或提供给panic的实参为nil时，recover就会返回nil。
-    - 仅在defer中调用
-    - 获取panic的值
-    - 如果无法处理,可重新panic(判断panic的类型 `err, ok := r.(error)`) 
-    ```go
-    defer func() {
-        if r:=recover(); r != nil { 
-            // panic r
-        }
-    }()
-    ```
+- 仅在defer中调用
+- 获取panic的值
+- 如果无法处理,可重新panic(判断panic的类型 `err, ok := r.(error)`)
+```go
+defer func() {
+if r:=recover(); r != nil {
+// panic r
+}
+}()
+```
 
 4. 定义UserError
-    类似于继承exception
+   类似于继承exception
     ```go
     type UserError type {
         Err Error       // 原生error
@@ -300,7 +213,7 @@ for key, value := range []rune(s) {
     ```
 
 5. 初始值
-int默认为0,bool默认为false, string默认为空字符串,byte默认为0,指针默认为nil,struct默认为空struct
+   int默认为0,bool默认为false, string默认为空字符串,byte默认为0,指针默认为nil,struct默认为空struct
 ```go
 var t map[int]int
 fmt.Printf("test: %+v \n", t[1])	// 0
@@ -373,7 +286,7 @@ fmt.Println("a=", a)    // [0, 1, 2, 10, 4, 11]
 
 
 #### slice的copy
-`copy(new, old)`, 将old的内容copy到new上面, 因为是copy,底层数组也是复制了一份. 
+`copy(new, old)`, 将old的内容copy到new上面, 因为是copy,底层数组也是复制了一份.
 ```go
 s1 := []int{0, 1, 2, 3, 4}
 s2 := make([]int, 6, 32)
@@ -390,7 +303,7 @@ copy(s3, s1)    // s3: [0 1]
 #### slice的delete
 1. 删除头元素: `s2[1:]`, 删除尾元素:`s2[:len(s2)-1]`
 
-2. 直接利用切片的功能: 
+2. 直接利用切片的功能:
     ```go
     s1 := []int{0, 1, 2, 3, 4}
     s2 := append(s1[:1], s1[2:]...)
@@ -428,16 +341,14 @@ c := [3]int{0, 1, 2}
 fmt.Println(c[5])   // panic
 ```
 
-
-
 ## 文件操作
 go语言对文件操作的包一般是`os`,`ioutil`,`bufio`
 
 1. 打开文件: `os.Open()` 或者 `ioutil.ReadFile()`
-    > os.Open拿到的是一个File struct, 而ReadFile是直接给的Byte数组。大文件不推荐使用ReadFile，而是使用bufio的形式
+   > os.Open拿到的是一个File struct, 而ReadFile是直接给的Byte数组。大文件不推荐使用ReadFile，而是使用bufio的形式
 
 2. 获取文件内容：`bufio.NewScanner`
-    > NewScanner需要传入一个 io.Reader,os.Open返回的File可以传进去，返回一个scanner，可以用for range遍历出来
+   > NewScanner需要传入一个 io.Reader,os.Open返回的File可以传进去，返回一个scanner，可以用for range遍历出来
     ```go
     for scanner.Scan() {
 		fmt.Println(scanner.Text())
@@ -449,7 +360,6 @@ go语言对文件操作的包一般是`os`,`ioutil`,`bufio`
     2. `ioutil.WriteFile`
     3. `File(Write,WriteString)`
     4. `bufio.NewWriter`
-
 
 ## 协程 coroutine
 - 轻量级“线程”
@@ -478,7 +388,7 @@ go语言对文件操作的包一般是`os`,`ioutil`,`bufio`
 5. 使用-race来检测数据访问的冲突
 
 #### 匿名函数变量作用域的问题
-如下例子, 两个匿名函数的i是不一样的,正确的用法是第二种,将i以值传递的方式传入匿名函数中; 
+如下例子, 两个匿名函数的i是不一样的,正确的用法是第二种,将i以值传递的方式传入匿名函数中;
 ```go
 for i := 0; i < 10; i++ {
     go func() {
@@ -532,13 +442,12 @@ go func(i int) {
 
 *只是参考,不能保证切换,不能保证在其他地方不切换*
 
-
 ## 编译
 ### 编译其他平台的二进制文件
 1. 通过以下linux命令,先了解目标平台的架构
     1. `uname -a`: 操作系统
     2. `uname -m`: 架构
-    3. `arch`: 
+    3. `arch`:
     4. `file /bin/cat`
     5. 获取系统类型： `lsb_release -d`
 
@@ -556,8 +465,8 @@ go func(i int) {
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build test.go
     ```
 
-    参数GOODS可以是: darwin,freebsd, linux, windows
-    参数GOARCH参数可以是: 386,amd64,arm
+   参数GOODS可以是: darwin,freebsd, linux, windows
+   参数GOARCH参数可以是: 386,amd64,arm
 
 3. build参数
 - -o: 输出的二进制文件名称, 用来代替默认包名;
@@ -570,5 +479,21 @@ go func(i int) {
 - -gcflags: 
 
 
+## 编码转换：
+下载两个包:  编码转换`gopm get -g -v golang.org/x/text`；自动检测编码：`gopm get -g -v golang.org/x/net/html`
+```go
 
+// 自动检测编码
+func determineEncoding(r io.Reader) encoding.Encoding {
+    bytes, err := bufio.NewReader(r).Peek(1024)
+    if err != {
+        panic(err)
+    }
+    e, _, _ := charset.DetermineEncoding(bytes, "")
+    return e
+}
+
+// gbk转utf8
+utf8Reader := transform.NewReader(resp.Body, simplifiedchinese.GBK.NewDecoder())
+```
 

@@ -1,4 +1,4 @@
-package convert
+package _1basic
 
 import (
 	"testing"

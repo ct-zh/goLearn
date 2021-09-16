@@ -1,8 +1,8 @@
-package main
+package _1basic
 
 import "fmt"
 
-func main() {
+func bit() {
 	// 按位或运算
 	// 参加运算的两个数只要两个数中的一个为1，结果就为1。
 	fmt.Printf("12 | 10 的十进制结果是%d, 二进制结果是%b\n", 12|10, 12|10)

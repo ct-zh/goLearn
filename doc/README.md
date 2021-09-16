@@ -39,6 +39,58 @@
 - `raceenabled`参数代表是否启用数据竞争检测; 在`go build`或者`go run`中加入`-race`参数就代表该选项为`true`
 - `msanenabled`参数: go1.6新增的参数,类似上面的`-race`,这个参数为`-msan`,并且仅在 linux/amd64上可用;作用是将调用插入到C/C++内存清理程序;这对于测试包含可疑 C 或 C++ 代码的程序很有用。在使用新的指针规则测试 cgo 代码时，您可能想尝试一下.
 
+## 位移符号
+y << x 代表将y的二进制左移x位, 比较常用的是以2为底的位移操作, 如:2的100次方`2 << 100`
+```go
+const (
+        j = 1 << iota	// 1=1 => 左移0位, 仍然是1
+        k = 3 << iota	// 3=11 => 左移1位, 110, 4+2=6
+        l				// 3=11 => 左移2位, 1100, 8+4=12
+        n				// 3=11 => 左移3位, 11000, 16+8=24
+    )
+    println(j, k, l, n)	// 1, 6, 12, 24
+```
+
+## 编码规范
+1. 格式化规范：使用gofmt 或者 goimport；
+2. 一行最长不要超过80个字符；
+3. go vet 工具帮我们静态分析源码各种问题；
+4. import规范：
+   建议采用如下格式：
+   ```go
+   import (
+       "encoding/json"
+       "strings"
+
+       "myproject/models"
+       "myproject/controller"
+       
+       "github.com/astaxie/beego"
+       "github.com/go-sql-driver/mysql"
+   )
+   ```
+   有顺序地引入包， 不同类型使用换行符分离，第一种是标准库，第二种是项目包，第三种是第三方包。*并且不要使用相对路径*
+5. 变量申明：使用驼峰命名，多个变量申明放在一起；函数外部的全局变量申明必须使用var，不然容易踩到作用域的坑；
+6. 闭包循环的问题：
+    ```go
+    for i := 0; i <= 5; i++ {
+        // 错误的写法，打印出来的都是6
+        go func() {
+            fmt.Println(i)
+        }()
+
+        // 正确的写法
+        go func(i int) {
+            fmt.Println(i)
+        }(i)
+    }
+    time.Sleep(time.Second)
+    ```
+7. 不要随意使用panic，而是使用`log.Fatal`来记录错误
+8. 使用`{}`来更好地区分代码块(go使用`{}`来划分变量的作用范围)
+
+
+
 ## reference
 
 

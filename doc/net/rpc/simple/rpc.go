@@ -10,7 +10,7 @@ type Args struct {
 	A, B int
 }
 
-// result must be a pointer type
+// Div result must be a pointer type
 func (DemoService) Div(args Args, result *float64) error {
 	if args.B == 0 {
 		return errors.New("division by zero")

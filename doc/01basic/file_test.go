@@ -1,4 +1,4 @@
-package file
+package _1basic
 
 import (
 	"fmt"

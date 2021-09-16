@@ -1,4 +1,4 @@
-package request
+package demo_request
 
 import (
 	. "github.com/smartystreets/goconvey/convey"

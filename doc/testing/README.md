@@ -1,4 +1,4 @@
-# 测试
+# 如何进行测试
 ## 测试流程
 1. 基本接口的单元测试, 保证代码没有逻辑性的bug;    
 2. 代码基准测试;
@@ -41,10 +41,26 @@
 - `-race`: 开启竞争检测(测试线程安全必须要加这个参数);
 - `-cpu`: 设置测试执行最大 P 数量的列表，如`-cpu=1,2,4` 
 - `-count=5`对于每一个测试函数，命令都会在预设的不同条件下（比如不同的最大 P 数量下）分别重复执行五次
-- `-parallel` 对于同一个被测代码包中的多个功能测试函数，命令会串行地执行它们。除非我们在一些功能测试函数中显式地调用t.Parallel方法。这个时候，这些包含了t.Parallel方法调用的功能测试函数就会被go test命令并发地执行，而并发执行的最大数量正是由-parallel标记值决定的。不过要注意，同一个功能测试函数的多次执行之间一定是串行的。
-- 
+- `-parallel` 对于同一个被测代码包中的多个功能测试函数，命令会串行地执行它们。除非我们在一些功能测试函数中显式地调用t.Parallel方法。这个时候，这些包含了t.Parallel方法调用的功能测试函数就会被go test命令并发地执行，而并发执行的最大数量正是由-parallel标记值决定的。不过要注意，同一个功能测试函数的多次执行之间一定是串行的。  
 
-### 基准测试
+> go test命令的正则匹配，无论是`-run`还是`-bench`，参数最好是带引号的正则表达式，因为如`|`等符号可能导致命令没有按照预期执行；
+>
+> 有一些常用的写法，比如存在方法 A1，A11, A11_a，A11_ab，如何准确匹配`A1`和`A11_ab`? `-run='^(A1|A11_ab)$'`
+
+#### 模块测试编写
+
+当我们编写一个模块的单元测试时，可能需要提前做一些工作（如初始化数据库连接，获取配置信息等）；通常会使用TestMain来完成这些任务：
+
+```go
+func TestMain(m *testing.M) {
+  	// do something
+    m.Run()  
+}
+```
+
+在进行单元测试时，go会自动调用TestMain去执行完初始化操作。
+
+### 基准测试benchmark
 `-bench="<regexp>"`: 执行匹配正则表达式的基准测试;*和`-run`一样一定要接参数*
 
 注意testing仍然会执行test测试函数,如果只做基准测试,建议使用`go test -run=^$ -bench=xxx`将run匹配不到任何单元测试函数;
@@ -59,13 +75,13 @@
     - 0 B/op: 表示每次调用耗费多少字节;
     - 0 allocs/op: 每次调用有几次内存分配;
 
-### 排除干扰因素
+#### 排除干扰因素
 当某个测试有部分代码不想计算在计时器内 (比如把数据库初始化时间排除在外), 使用`b.ResetTimer()`或者`b.StopTimer()`和`b.StartTimer()`来控制基准测试的计时器;
 
 > *不要在for循环里面使用ResetTimer!!*
 
 
-### 并行测试
+#### 并行测试
 通常用来测试多协程代码;使用`b.RunParallel`,注意在`runParallel`函数内不要使用`b.ResetTimer()`这样的全局函数:
 ```go
 func BenchmarkHiParallel(b *testing.B) {
@@ -90,14 +106,12 @@ func BenchmarkHiParallel(b *testing.B) {
 - 发现handleHi函数在prof里面没有任何占用,说明并发竞争没有问题;
 
 
-### 基准测试结果对比
+#### 基准测试结果对比
 使用`benchstat`: 
 ```bash
 go test -run=NONE -bench . strcat_test.go > new.txt
 benchstat old.txt new.txt
 ```
-
-
 
 ### 代码覆盖率
 `go test -coverprofile=c.out`
