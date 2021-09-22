@@ -4,7 +4,6 @@ go 1.14
 
 require (
 	entgo.io/ent v0.9.1
-	github.com/LannisterAlwaysPaysHisDebts/lesson38 v0.0.0-20210226154644-be7520e7bf8b // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-delve/delve v1.6.0 // indirect
@@ -17,6 +16,7 @@ require (
 	github.com/google/wire v0.5.0 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20210202160940-bed99a852dfe // indirect
 	github.com/gorilla/mux v1.7.3
+	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/jinzhu/copier v0.3.2
 	github.com/jinzhu/gorm v1.9.16
