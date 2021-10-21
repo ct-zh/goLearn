@@ -1,4 +1,4 @@
-package main
+package object
 
 import "fmt"
 
@@ -19,9 +19,4 @@ type Ma struct {
 
 func (m Ma) getSubject() {
 	fmt.Println("wu hu fly")
-}
-
-func main() {
-	m := &Ma{}
-	m.getName() // wu hu fly
 }
