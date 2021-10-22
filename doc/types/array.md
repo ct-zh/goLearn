@@ -12,3 +12,9 @@ type Array struct {
 
 > 这片文章[go里面的数组](https://draveness.me/golang/docs/part2-foundation/ch03-datastructure/golang-array/)讲得很清楚了
 
+## 很蠢的一个题目
+```go
+// 下面生成的数组内部数据是什么样？
+arr := [...]int{1, 2, 5: 4, 6}
+```
+

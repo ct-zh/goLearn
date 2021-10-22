@@ -191,6 +191,17 @@ a = append(a, 3, 3, 3)		// 0 0 0 0 3 3 3
 fmt.Println(a[5])	// 3
 ```
 
+## 问题
+```go
+// 最后输出的结果是什么？ 为什么？
+str := "Go语言"
+runeStr := []rune("Go语言")
+fmt.Println(len(str))       // ?
+fmt.Println(len(runeStr))   // ?
+fmt.Println(unsafe.Sizeof(str))     // ?
+fmt.Println(unsafe.Sizeof(runeStr)) // ?
+```
+
 ## reference
 
 > [go slice源码](https://github.com/golang/go/blob/go1.14.15/src/runtime/slice.go)
