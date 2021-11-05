@@ -10,3 +10,7 @@
 - 对撞指针
 - 运用排序算法、二分查找法等思想;
 
+## 经典例题
+- [数组类算法](https://leetcode-cn.com/leetbook/detail/all-about-array/)
+- [数组与字符串](https://leetcode-cn.com/leetbook/detail/array-and-string/)
+
