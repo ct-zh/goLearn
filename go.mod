@@ -25,6 +25,7 @@ require (
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/steakknife/bloomfilter v0.0.0-20180922174646-6819c0d2a570 // indirect
 	github.com/streadway/amqp v1.0.0 // indirect
+	github.com/stretchr/testify v1.7.0
 	github.com/thecodingmachine/gotenberg-go-client/v7 v7.2.0
 	github.com/yanyiwu/gojieba v1.1.2
 	golang.org/x/mod v0.4.2 // indirect
