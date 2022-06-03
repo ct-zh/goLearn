@@ -1,5 +1,7 @@
 package _1basic
 
+// 各种类型的转换
+
 import (
 	"encoding/binary"
 	"encoding/json"
