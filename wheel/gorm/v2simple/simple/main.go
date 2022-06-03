@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/gorm/common"
-	"github.com/LannisterAlwaysPaysHisDebts/goLearn/wheel/gorm/model"
+	"github.com/ct-zh/goLearn/wheel/gorm/common"
+	"github.com/ct-zh/goLearn/wheel/gorm/model"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
