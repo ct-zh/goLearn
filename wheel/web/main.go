@@ -3,7 +3,8 @@ package main
 import (
 	"log"
 	"net/http"
-	"web/web"
+
+	"github.com/ct-zh/goLearn/wheel/web/web"
 )
 
 func main() {
