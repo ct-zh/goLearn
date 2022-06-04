@@ -65,7 +65,7 @@ func NewDijkstra(g *weightGraph.WeightGraph, s int) *dijkstra {
 	// dijkstra
 	d.distTo[s] = 0
 	d.marked[s] = true
-	ipq.Insert(s, d.from[s])
+	ipq.Insert(s, d.distTo[s])
 	for {
 		if ipq.IsEmpty() {
 			break
@@ -93,9 +93,9 @@ func NewDijkstra(g *weightGraph.WeightGraph, s int) *dijkstra {
 
 					// 如果最小索引堆中已经包含了w节点，则更新其权值
 					if ipq.Contain(w) {
-						ipq.Change(w, d.from[w])
+						ipq.Change(w, d.distTo[w])
 					} else {
-						ipq.Insert(w, d.from[w])
+						ipq.Insert(w, d.distTo[w])
 					}
 				}
 			}
