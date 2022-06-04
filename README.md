@@ -5,7 +5,6 @@
 
 |目录|注释|
 |---|---|
-|[camp](./camp/)|网上各种课程笔记/demo摘抄|
 |[doc](./doc/README.md)🐣🐣🐣|基础语法与demo|
 |[leetcode](./leetcode/readme.md)🚗🚗🚗|golang版本刷题整理|
 |[src](./src/README.md)✈️✈️✈️|开发场景demo|
