@@ -14,6 +14,7 @@ type weixinRequest struct {
 }
 
 // 用于微信公众号服务器绑定通过验证
+// nginx 80接口反向代理
 func main() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		wx := &weixinRequest{}
@@ -25,7 +26,7 @@ func main() {
 		}
 		writer.Write([]byte(wx.Echostr))
 	})
-	err := http.ListenAndServe(":80", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic(err)
 	}
