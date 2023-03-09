@@ -10,13 +10,16 @@ import (
 
 // rpc远程调用div方法
 func main() {
+	// step1. 申明服务器链接
 	conn, err := net.Dial("tcp", ":13998")
 	if err != nil {
 		panic(err)
 	}
 
+	// step2. 初始化client
 	client := jsonrpc.NewClient(conn)
 
+	// step3. 使用call发起请求
 	var result float64
 	err = client.Call("DemoService.Div", simple.Args{
 		A: 10,
