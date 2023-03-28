@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/schema"
@@ -22,9 +24,20 @@ func main() {
 		decoder := schema.NewDecoder()
 		err := decoder.Decode(wx, request.URL.Query())
 		if err != nil {
-			fmt.Printf("err= %+v \n", err)
+			log.Printf("err= %+v \n", err)
 			return
 		}
+		log.Printf("wx=%+v", wx)
+
+		if request.Method == http.MethodPost {
+			body, err := ioutil.ReadAll(request.Body)
+			if err != nil {
+				fmt.Printf("err= %+v \n", err)
+				return
+			}
+			log.Printf("request= %s \n", string(body))
+		}
+
 		writer.Write([]byte(wx.Echostr))
 	})
 	err := http.ListenAndServe(":8080", nil)
