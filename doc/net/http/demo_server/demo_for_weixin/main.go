@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"encoding/xml"
 	"fmt"
 	"github.com/gorilla/schema"
 	"io/ioutil"
@@ -20,11 +22,23 @@ type weixinRequest struct {
 	Echostr   string `json:"echostr"`
 }
 
+type xmlMsg struct {
+	FromUserName string `xml:"FromUserName"`
+	MsgType      string `xml:"MsgType"`
+	Content      string `xml:"Content"`
+}
+
+var whiteList = map[string]struct{}{
+	"oNmT-0q5h-NTPQByNiGj1vVztgDU": {},
+}
+
 // 用于微信公众号服务器绑定通过验证
 // nginx 80接口反向代理
 func main() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		// 解析url的query参数
+		ctx := context.Background()
+
 		log.Printf("query=%+v", request.URL.Query())
 		wx, err := decoder.Decode(request.URL.Query())
 		if err != nil {
@@ -41,6 +55,28 @@ func main() {
 				return
 			}
 			log.Printf("request= %s \n", string(body))
+
+			msg := &xmlMsg{}
+			err = xml.Unmarshal(body, msg)
+			if err != nil {
+				log.Printf("xml.Unmarshal err=%+v", err)
+				writer.Write([]byte(""))
+				return
+			}
+			if msg.FromUserName != "" {
+				if _, ok := whiteList[msg.FromUserName]; ok {
+					if msg.MsgType == "text" {
+						content, err := AskForOpenAI(ctx, msg.FromUserName, msg.Content)
+						if err != nil {
+							log.Printf("AskForOpenAI err=%+v", err)
+							writer.Write([]byte(""))
+							return
+						}
+						writer.Write([]byte(content))
+						return
+					}
+				}
+			}
 		}
 
 		writer.Write([]byte(wx.Echostr))
