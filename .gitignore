@@ -8,3 +8,6 @@
 *.log
 *.prof
 *.test
+.vscode/
+.env
+.yaml
