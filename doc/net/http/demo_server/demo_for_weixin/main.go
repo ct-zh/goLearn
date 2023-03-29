@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
-	"github.com/gorilla/schema"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"reflect"
 	"sync"
+
+	"github.com/gorilla/schema"
 )
 
 var decoder *ReqDecoder
@@ -30,6 +31,7 @@ type xmlMsg struct {
 
 var whiteList = map[string]struct{}{
 	"oNmT-0q5h-NTPQByNiGj1vVztgDU": {},
+	"oNmT-0g7y0DSAU9__wdMHzJe4g40": {},
 }
 
 // 用于微信公众号服务器绑定通过验证
