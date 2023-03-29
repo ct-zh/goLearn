@@ -22,6 +22,11 @@ func AskForOpenAI(ctx context.Context, user, text string) (string, error) {
 	jsonStr, err := json.Marshal(openaiReq)
 
 	req, err := http.NewRequest("POST", cfg.RequestIP, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		log.Printf("http.NewRequest err=%+v", err)
+		return "", err
+	}
+
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
