@@ -1,18 +1,16 @@
 package main
 
 import (
-	"context"
 	"encoding/xml"
 	"fmt"
-	"go.uber.org/zap"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"reflect"
 	"sync"
 	"time"
 
-	"github.com/ct-zh/golib/usage/logging"
 	"github.com/gorilla/schema"
 )
 
@@ -54,16 +52,15 @@ var whiteList = map[string]string{
 func main() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		// 解析url的query参数
-		ctx := context.Background()
-		log := logging.For(ctx, zap.Any("request", request.URL.Query()))
+		//ctx := context.Background()
 
 		wx, err := decoder.Decode(request.URL.Query())
 		if err != nil {
-			log.Errorf("decoder.Decode err=%+v", err)
+			log.Printf("decoder.Decode err=%+v", err)
 			writer.Write([]byte(""))
 			return
 		}
-		log.Debugf("wx=%+v", wx)
+		log.Printf("wx=%+v", wx)
 
 		if request.Method == http.MethodPost {
 			body, err := ioutil.ReadAll(request.Body)
@@ -71,12 +68,12 @@ func main() {
 				fmt.Printf("err= %+v \n", err)
 				return
 			}
-			log.Debugf("request= %s \n", string(body))
+			log.Printf("request= %s \n", string(body))
 
 			msg := &xmlMsg{}
 			err = xml.Unmarshal(body, msg)
 			if err != nil {
-				log.Debugf("xml.Unmarshal err=%+v", err)
+				log.Printf("xml.Unmarshal err=%+v", err)
 				writer.Write([]byte(""))
 				return
 			}
@@ -124,7 +121,7 @@ func main() {
 			}
 			replyByt, err := xml.Marshal(reply)
 			if err != nil {
-				log.Debugf("Marshal err=%+v", err)
+				log.Printf("Marshal err=%+v", err)
 				writer.Write([]byte(""))
 				return
 			}
@@ -136,11 +133,6 @@ func main() {
 	})
 	cfg = NewConfig()
 	decoder = NewReqDecoder()
-	logging.NewLogger(&logging.Options{
-		Rolling:     logging.DAILY,
-		TimesFormat: logging.TIMESECOND,
-		Level:       "debug",
-	})
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic(err)
@@ -183,7 +175,7 @@ func (r *ReqDecoder) Decode(val url.Values) (*weixinRequest, error) {
 			filterQuery[key] = filterItem
 		}
 	}
-	logging.Debugf("filter query=%+v", filterQuery)
+	log.Printf("filter query=%+v", filterQuery)
 	wx := &weixinRequest{}
 	err := r.Decoder.Decode(wx, filterQuery)
 	if err != nil {
