@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	xmlCoder "encoding/xml"
 	"fmt"
 	"io/ioutil"
@@ -52,7 +53,7 @@ var whiteList = map[string]string{
 func main() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		// 解析url的query参数
-		//ctx := context.Background()
+		ctx := context.Background()
 
 		wx, err := decoder.Decode(request.URL.Query())
 		if err != nil {
@@ -86,7 +87,7 @@ func main() {
 				return
 			}
 
-			_, ok := whiteList[msg.FromUserName]
+			masterName, ok := whiteList[msg.FromUserName]
 			if !ok {
 				writer.Write([]byte(""))
 				return
@@ -102,14 +103,14 @@ func main() {
 				return
 			}
 
-			//content, err := decoder.OpenAi.AskForOpenAI(ctx, masterName, msg.Content)
-			//if err != nil {
-			//	log.Printf("AskForOpenAI err=%+v", err)
-			//	writer.Write([]byte(""))
-			//	return
-			//}
+			content, err := decoder.OpenAi.AskForOpenAI(ctx, masterName, msg.Content)
+			if err != nil {
+				log.Printf("AskForOpenAI err=%+v", err)
+				writer.Write([]byte(""))
+				return
+			}
 
-			content := "你好"
+			//content := "你好"
 			decoder.Reply[msg.FromUserName].Store(msgKey, content)
 
 			reply := &xml{
