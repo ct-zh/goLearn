@@ -125,6 +125,7 @@ func main() {
 				writer.Write([]byte(""))
 				return
 			}
+			log.Printf("replyByt=%s", string(replyByt))
 			writer.Write(replyByt)
 			return
 		}
