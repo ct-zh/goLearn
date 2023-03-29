@@ -103,7 +103,7 @@ func main() {
 				return
 			}
 
-			content, err := decoder.OpenAi.AskForOpenAI(ctx, masterName, msg.Content)
+			content, err := AskForOpenAI(ctx, masterName, msg.Content)
 			if err != nil {
 				log.Printf("AskForOpenAI err=%+v", err)
 				writer.Write([]byte(""))
@@ -144,7 +144,6 @@ func main() {
 type ReqDecoder struct {
 	Decoder     *schema.Decoder
 	FilterQuery sync.Map
-	OpenAi      *OpenAi
 	Reply       map[string]*sync.Map
 }
 
@@ -164,7 +163,6 @@ func NewReqDecoder() *ReqDecoder {
 	return &ReqDecoder{
 		Decoder:     schema.NewDecoder(),
 		FilterQuery: filter,
-		OpenAi:      NewOpenAi(),
 		Reply:       reply,
 	}
 }

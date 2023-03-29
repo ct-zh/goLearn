@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/xml"
+	xmlCoder "encoding/xml"
 	"testing"
 )
 
@@ -20,7 +20,7 @@ func TestXml(t *testing.T) {
 
 	for _, str := range testStr {
 		msg := &xmlMsg{}
-		err := xml.Unmarshal([]byte(str), msg)
+		err := xmlCoder.Unmarshal([]byte(str), msg)
 		if err != nil {
 			t.Fatal(err)
 		}

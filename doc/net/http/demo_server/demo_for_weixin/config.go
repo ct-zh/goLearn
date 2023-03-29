@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	OpenKey string `yaml:"open_key"`
+	RequestKey string `yaml:"request_key"`
+	RequestIP  string `yaml:"request_ip"`
 }
 
 func NewConfig() *Config {
@@ -20,8 +21,11 @@ func NewConfig() *Config {
 	if err != nil {
 		panic(err)
 	}
-	if cfg.OpenKey == "" {
-		panic("open_key is empty")
+	if cfg.RequestKey == "" {
+		panic("request_key is empty")
+	}
+	if cfg.RequestIP == "" {
+		panic("request_ip is empty")
 	}
 
 	return cfg

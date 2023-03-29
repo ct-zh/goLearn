@@ -1,37 +1,38 @@
 package main
 
 import (
+	"bytes"
 	"context"
-
-	openai "github.com/sashabaranov/go-openai"
+	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net/http"
 )
 
-type OpenAi struct {
-	client *openai.Client
+type OpenAiReq struct {
+	Content string `json:"content"`
+	Key     string `json:"key"`
 }
 
-func NewOpenAi() *OpenAi {
-	return &OpenAi{
-		client: openai.NewClient(cfg.OpenKey),
+func AskForOpenAI(ctx context.Context, user, text string) (string, error) {
+	openaiReq := &OpenAiReq{
+		Content: text,
+		Key:     cfg.RequestKey,
 	}
-}
+	jsonStr, err := json.Marshal(openaiReq)
 
-func (o *OpenAi) AskForOpenAI(ctx context.Context, user, text string) (string, error) {
-	resp, err := o.client.CreateChatCompletion(
-		ctx,
-		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: text,
-				},
-			},
-		},
-	)
+	req, err := http.NewRequest("POST", cfg.RequestIP, bytes.NewBuffer(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("client.Do err=%+v", err)
 		return "", err
 	}
+	defer resp.Body.Close()
 
-	return resp.Choices[0].Message.Content, nil
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	return string(body), nil
 }
