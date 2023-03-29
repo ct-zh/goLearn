@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/xml"
+	xmlCoder "encoding/xml"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -34,7 +34,7 @@ type xmlMsg struct {
 	CreateTime   int64  `xml:"CreateTime"`
 }
 
-type replyXmlMsg struct {
+type xml struct {
 	ToUserName   string `xml:"ToUserName"`
 	FromUserName string `xml:"FromUserName"`
 	CreateTime   int64  `xml:"CreateTime"`
@@ -71,7 +71,7 @@ func main() {
 			log.Printf("request= %s \n", string(body))
 
 			msg := &xmlMsg{}
-			err = xml.Unmarshal(body, msg)
+			err = xmlCoder.Unmarshal(body, msg)
 			if err != nil {
 				log.Printf("xml.Unmarshal err=%+v", err)
 				writer.Write([]byte(""))
@@ -112,14 +112,14 @@ func main() {
 			content := "你好"
 			decoder.Reply[msg.FromUserName].Store(msgKey, content)
 
-			reply := &replyXmlMsg{
+			reply := &xml{
 				ToUserName:   msg.FromUserName,
 				FromUserName: msg.ToUserName,
 				CreateTime:   time.Now().Unix(),
 				MsgType:      "text",
 				Content:      content,
 			}
-			replyByt, err := xml.Marshal(reply)
+			replyByt, err := xmlCoder.Marshal(reply)
 			if err != nil {
 				log.Printf("Marshal err=%+v", err)
 				writer.Write([]byte(""))
