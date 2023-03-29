@@ -4,17 +4,21 @@ import (
 	"context"
 	"encoding/xml"
 	"fmt"
+	"go.uber.org/zap"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"reflect"
 	"sync"
+	"time"
 
+	"github.com/ct-zh/golib/usage/logging"
 	"github.com/gorilla/schema"
 )
 
 var decoder *ReqDecoder
+
+var cfg *Config
 
 type weixinRequest struct {
 	Signature string `json:"signature"`
@@ -27,11 +31,22 @@ type xmlMsg struct {
 	FromUserName string `xml:"FromUserName"`
 	MsgType      string `xml:"MsgType"`
 	Content      string `xml:"Content"`
+	MsgId        string `xml:"MsgId"`
+	ToUserName   string `xml:"ToUserName"`
+	CreateTime   int64  `xml:"CreateTime"`
 }
 
-var whiteList = map[string]struct{}{
-	"oNmT-0q5h-NTPQByNiGj1vVztgDU": {},
-	"oNmT-0g7y0DSAU9__wdMHzJe4g40": {},
+type replyXmlMsg struct {
+	ToUserName   string `xml:"ToUserName"`
+	FromUserName string `xml:"FromUserName"`
+	CreateTime   int64  `xml:"CreateTime"`
+	MsgType      string `xml:"MsgType"`
+	Content      string `xml:"Content"`
+}
+
+var whiteList = map[string]string{
+	"oNmT-0q5h-NTPQByNiGj1vVztgDU": "主人",
+	"oNmT-0g7y0DSAU9__wdMHzJe4g40": "李小姐",
 }
 
 // 用于微信公众号服务器绑定通过验证
@@ -40,15 +55,15 @@ func main() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		// 解析url的query参数
 		ctx := context.Background()
+		log := logging.For(ctx, zap.Any("request", request.URL.Query()))
 
-		log.Printf("query=%+v", request.URL.Query())
 		wx, err := decoder.Decode(request.URL.Query())
 		if err != nil {
-			log.Printf("decoder.Decode err=%+v", err)
+			log.Errorf("decoder.Decode err=%+v", err)
 			writer.Write([]byte(""))
 			return
 		}
-		log.Printf("wx=%+v", wx)
+		log.Debugf("wx=%+v", wx)
 
 		if request.Method == http.MethodPost {
 			body, err := ioutil.ReadAll(request.Body)
@@ -56,34 +71,76 @@ func main() {
 				fmt.Printf("err= %+v \n", err)
 				return
 			}
-			log.Printf("request= %s \n", string(body))
+			log.Debugf("request= %s \n", string(body))
 
 			msg := &xmlMsg{}
 			err = xml.Unmarshal(body, msg)
 			if err != nil {
-				log.Printf("xml.Unmarshal err=%+v", err)
+				log.Debugf("xml.Unmarshal err=%+v", err)
 				writer.Write([]byte(""))
 				return
 			}
-			if msg.FromUserName != "" {
-				if _, ok := whiteList[msg.FromUserName]; ok {
-					if msg.MsgType == "text" {
-						content, err := AskForOpenAI(ctx, msg.FromUserName, msg.Content)
-						if err != nil {
-							log.Printf("AskForOpenAI err=%+v", err)
-							writer.Write([]byte(""))
-							return
-						}
-						writer.Write([]byte(content))
-						return
-					}
-				}
+			if msg.MsgId == "" {
+				writer.Write([]byte(""))
+				return
 			}
+			if msg.FromUserName == "" {
+				writer.Write([]byte(""))
+				return
+			}
+
+			_, ok := whiteList[msg.FromUserName]
+			if !ok {
+				writer.Write([]byte(""))
+				return
+			}
+			if msg.MsgType != "text" {
+				writer.Write([]byte(""))
+				return
+			}
+
+			msgKey := fmt.Sprintf("%s_%d", msg.FromUserName, msg.CreateTime)
+			if _, ok := decoder.Reply[msg.FromUserName].Load(msgKey); ok {
+				writer.Write([]byte(""))
+				return
+			}
+
+			//content, err := decoder.OpenAi.AskForOpenAI(ctx, masterName, msg.Content)
+			//if err != nil {
+			//	log.Printf("AskForOpenAI err=%+v", err)
+			//	writer.Write([]byte(""))
+			//	return
+			//}
+
+			content := "你好"
+			decoder.Reply[msg.FromUserName].Store(msgKey, content)
+
+			reply := &replyXmlMsg{
+				ToUserName:   msg.FromUserName,
+				FromUserName: msg.ToUserName,
+				CreateTime:   time.Now().Unix(),
+				MsgType:      "text",
+				Content:      content,
+			}
+			replyByt, err := xml.Marshal(reply)
+			if err != nil {
+				log.Debugf("Marshal err=%+v", err)
+				writer.Write([]byte(""))
+				return
+			}
+			writer.Write(replyByt)
+			return
 		}
 
 		writer.Write([]byte(wx.Echostr))
 	})
+	cfg = NewConfig()
 	decoder = NewReqDecoder()
+	logging.NewLogger(&logging.Options{
+		Rolling:     logging.DAILY,
+		TimesFormat: logging.TIMESECOND,
+		Level:       "debug",
+	})
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic(err)
@@ -93,6 +150,8 @@ func main() {
 type ReqDecoder struct {
 	Decoder     *schema.Decoder
 	FilterQuery sync.Map
+	OpenAi      *OpenAi
+	Reply       map[string]*sync.Map
 }
 
 func NewReqDecoder() *ReqDecoder {
@@ -102,9 +161,17 @@ func NewReqDecoder() *ReqDecoder {
 		field := t.Field(i)
 		filter.Store(field.Tag.Get("json"), struct{}{})
 	}
+
+	reply := make(map[string]*sync.Map)
+	for key := range whiteList {
+		reply[key] = &sync.Map{}
+	}
+
 	return &ReqDecoder{
 		Decoder:     schema.NewDecoder(),
 		FilterQuery: filter,
+		OpenAi:      NewOpenAi(),
+		Reply:       reply,
 	}
 }
 
@@ -116,7 +183,7 @@ func (r *ReqDecoder) Decode(val url.Values) (*weixinRequest, error) {
 			filterQuery[key] = filterItem
 		}
 	}
-	log.Printf("filter query=%+v", filterQuery)
+	logging.Debugf("filter query=%+v", filterQuery)
 	wx := &weixinRequest{}
 	err := r.Decoder.Decode(wx, filterQuery)
 	if err != nil {
