@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	OpenKey string `json:"open_key"`
+	OpenKey string `yaml:"open_key"`
 }
 
 func NewConfig() *Config {
