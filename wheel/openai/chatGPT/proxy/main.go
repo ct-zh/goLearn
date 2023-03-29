@@ -8,9 +8,9 @@ import (
 	"net/http"
 )
 
-type req struct {
-	content string `json:"content"`
-	key     string `json:"key"`
+type Req struct {
+	Content string `json:"content"`
+	Key     string `json:"key"`
 }
 
 var (
@@ -27,22 +27,24 @@ func main() {
 				w.Write([]byte("error"))
 				return
 			}
-			req := &req{}
-			err = json.Unmarshal(body, req)
+			req := &Req{}
+			log.Printf("body=%s", body)
+			err = json.Unmarshal(body, &req)
 			if err != nil {
 				log.Printf("err= %+v \n", err)
 				w.Write([]byte("error"))
 				return
 			}
-			if req.key != cfg.RequestKey {
+			log.Printf("Req = %+v", req)
+			if req.Key != cfg.RequestKey {
 				w.Write([]byte("error"))
 				return
 			}
-			if req.content == "" {
+			if req.Content == "" {
 				w.Write([]byte("error"))
 				return
 			}
-			content, err := openAi.AskForOpenAI(context.Background(), "", req.content)
+			content, err := openAi.AskForOpenAI(context.Background(), "", req.Content)
 			if err != nil {
 				log.Printf("err= %+v \n", err)
 				w.Write([]byte("error"))
