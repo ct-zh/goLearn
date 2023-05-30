@@ -1,4 +1,4 @@
-package _1basic
+package convery
 
 // 各种类型的转换
 
@@ -149,9 +149,9 @@ func XmlEncodeAndDecode(s interface{}, save interface{}) error {
 }
 
 func UrlEncode(s string) string {
-	return ""
+	return url.QueryEscape(s)
 }
 
-func UrlDecode(s string) string {
-	return ""
+func UrlDecode(s string) (string, error) {
+	return url.QueryUnescape(s)
 }

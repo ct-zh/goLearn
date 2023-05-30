@@ -1,4 +1,4 @@
-package _1basic
+package convery
 
 import (
 	. "github.com/smartystreets/goconvey/convey"
