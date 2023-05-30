@@ -30,9 +30,7 @@ func main() {
 
 // time包高频用法
 func timeUsual() {
-	w
 	// 获取当前时间戳/获取某个时间的时间戳
-
 }
 
 // type time
