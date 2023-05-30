@@ -14,6 +14,8 @@ import (
 // 只读：sync.Mutex > sync.RwMutex > sync.Map
 // 读写各一半：sync.RwMutex > sync.Mutex > sync.Map
 
+// 2023.05.09 询问chatGPT: 在读多写少的环境下，sync.RWMutex 性能可能更好。因为它支持多个读锁同时获取，而不需要排他锁，这可以提高并发读的性能。
+
 type myMutex struct {
 	sync.Mutex
 	data map[int]struct{}
