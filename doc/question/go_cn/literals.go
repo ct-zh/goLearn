@@ -1,4 +1,4 @@
-package _1basic
+package go_cn
 
 import "fmt"
 
