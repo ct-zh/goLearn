@@ -18,7 +18,7 @@ func Test_ParseField(t *testing.T) {
 		Age  int
 	}
 	
-	func SayHello(name string) {
+	func SayHello(name string) (err error) {
 		fmt.Println("Hello, " + name)
 	}
 	`
@@ -33,6 +33,7 @@ func Test_ParseField(t *testing.T) {
 
 	// 遍历AST查找结构体字段和函数的参数/结果
 	ast.Inspect(node, func(n ast.Node) bool {
+		fmt.Printf("节点: %T %+v\n", n, n)
 		switch node := n.(type) {
 		case *ast.Field:
 			// 结构体字段
