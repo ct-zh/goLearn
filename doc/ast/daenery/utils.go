@@ -10,6 +10,10 @@ type fileParams struct {
 	name   string
 }
 
+func printType(a any) {
+	fmt.Printf("[type=%T] %+v \n", a, a)
+}
+
 // 从package中找到对应名称的函数
 func findFunc(pack *ast.Package, name string) *ast.FuncDecl {
 	var nodeFn *ast.FuncDecl
