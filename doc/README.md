@@ -14,8 +14,8 @@
 - [error错误处理](./error/.)
 - [单元测试与基准测试](./testing/README.md)
 
-## 关于src的一些tips
-### go目录
+## 关于go语源码src文件夹的一些tips
+### go源码目录
 目录中分为api、doc、include、lib、src、misc、test这7个原始目录，编译后还会生成bin、pkg，2个目录
 - api：对应工具"go tool api"相应源码 src/cmd/api;
 - doc：文档目录，如果要编译，或者了解一些版本信息，可以看一下这个目录中html内容;
@@ -92,16 +92,3 @@ const (
 
 
 ## reference
-
-
-## todo
-1. flag
-3. strconv
-4. strings
-5. database
-6. net
-8. os
-9. path
-11. sort
-12. io
-13. bufio
