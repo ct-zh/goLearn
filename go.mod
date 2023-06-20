@@ -3,7 +3,7 @@ module github.com/ct-zh/goLearn
 go 1.14
 
 require (
-	entgo.io/ent v0.9.1
+	entgo.io/ent v0.9.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-delve/delve v1.6.0 // indirect
@@ -21,12 +21,13 @@ require (
 	github.com/jinzhu/copier v0.3.2
 	github.com/jinzhu/gorm v1.9.16
 	github.com/mailru/easyjson v0.7.7
+	github.com/pkg/profile v1.7.0 // indirect
+	github.com/sashabaranov/go-openai v1.5.7 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	github.com/steakknife/bloomfilter v0.0.0-20180922174646-6819c0d2a570 // indirect
 	github.com/streadway/amqp v1.0.0 // indirect
-	github.com/stretchr/testify v1.7.0
-	github.com/thecodingmachine/gotenberg-go-client/v7 v7.2.0
+	github.com/thecodingmachine/gotenberg-go-client/v7 v7.2.0 // indirect
 	github.com/yanyiwu/gojieba v1.1.2
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20210415231046-e915ea6b2b7d // indirect
