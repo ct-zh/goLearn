@@ -20,7 +20,9 @@ require (
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/jinzhu/copier v0.3.2
 	github.com/jinzhu/gorm v1.9.16
+	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/mailru/easyjson v0.7.7
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pkg/profile v1.7.0 // indirect
 	github.com/sashabaranov/go-openai v1.5.7 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
