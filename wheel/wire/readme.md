@@ -1,0 +1,1 @@
+- [依赖注入工具 wire](https://mp.weixin.qq.com/s/-6KoeHT2nG_sR6Y1h6zODA)

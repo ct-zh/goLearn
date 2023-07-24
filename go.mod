@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	entgo.io/ent v0.9.1 // indirect
+	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-delve/delve v1.6.0 // indirect
