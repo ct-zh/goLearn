@@ -22,6 +22,7 @@ require (
 	github.com/hashicorp/consul/api v1.3.0
 	github.com/jinzhu/copier v0.3.2
 	github.com/jinzhu/gorm v1.9.16
+	github.com/json-iterator/go v1.1.12
 	github.com/lib/pq v1.10.2 // indirect
 	github.com/mailru/easyjson v0.7.7
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
