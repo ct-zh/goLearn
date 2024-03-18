@@ -1,5 +1,10 @@
 package bytes_buffer
 
+import (
+	"bytes"
+	"io"
+)
+
 // tryGrowByReslice是growth的内联版本
 // 适用于只需要重新占用内部缓冲区的快速情况
 // 它返回应该写入字节的索引以及它是否成功。
@@ -85,3 +90,19 @@ func growSlice(b []byte, n int) []byte {
 }
 
 func (b *Buffer) empty() bool { return len(b.buf) <= b.off }
+
+// 从缓冲区中查找分隔符并返回该分隔符之前的子切片
+func (b *Buffer) readSlice(delim byte) (line []byte, err error) {
+	// IndexByte 返回 b 中 c 的第一个实例的索引，如果 b 中不存在 c，则返回 -1。
+	// 使用 IndexByte 函数查找分隔符 (delim) 在缓冲区中 (从 b.off 位置开始) 的索引位置。
+	i := bytes.IndexByte(b.buf[b.off:], delim)
+	end := b.off + i + 1 // 计算子切片的结束位置,包含分隔符本身(+1)
+	if i < 0 {           // 如果小于 0，表示没有找到分隔符，即读取到了缓冲区末尾
+		end = len(b.buf)
+		err = io.EOF
+	}
+	line = b.buf[b.off:end] //
+	b.off = end             // 更新 b.off 指针，使其指向分隔符之后的下一个字节
+	b.lastRead = opRead
+	return line, err
+}
