@@ -11,6 +11,47 @@ func TestBytesBuffer(t *testing.T) {
 	t.Logf("%s", b.String())
 }
 
+// buffer的使用方法
+func TestBytesBuffer1(t *testing.T) {
+	// 零值buffer可以直接使用
+	b := bytes.Buffer{}
+	// 写入字符串
+	n, err := b.WriteString("hello world")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("写入字符串的长度： %d", n)
+
+	// 写入字节
+	err = b.WriteByte('!')
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// 获取长度、容量
+	t.Logf("buffer len = %d cap = %d", b.Len(), b.Cap())
+
+	// 获取字符串、字节
+	t.Logf("get string = %s, get bytes = %s", b.String(), b.Bytes())
+
+	// 读取单个字节
+	if bb, err := b.ReadByte(); err != nil {
+		t.Fatal(err)
+	} else {
+		t.Logf("read byte = %c, current buffer = %s", bb, b.String())
+		b.UnreadByte()
+	}
+
+	// 读取字节切片，会导致buffer的指针变动
+	readData := make([]byte, 12)
+	if n, err := b.Read(readData); err != nil {
+		t.Fatal(err)
+	} else {
+		t.Logf("read data = %s, current buffer = %s", readData[:n], b.String())
+	}
+
+}
+
 // copy函数的用法
 func Test_copy(t *testing.T) {
 	buf1 := make([]byte, 0, 64)

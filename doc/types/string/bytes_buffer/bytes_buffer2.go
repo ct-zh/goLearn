@@ -44,8 +44,9 @@ func (b *Buffer) grow(n int) int {
 	if n <= c/2-m {
 
 		// copy(dst, src)函数将数据从src复制到dst，覆盖dst中已有的数据
-		// 这里将buf[off:] 这一部分的数据直接复制到整个buf里面，相当于舍弃掉off之前的数据
-		// 比如 [1,2,3,4], off = 1 copy后结果为 [2,3,4,4]
+		// 这里将buf[off:] 这一部分的数据直接复制到整个buf里面，相当于舍弃掉off之前的已读取数据
+		// 比如数据为 [1,2,3,4], 已经Read读取过了1，所以off = 1, copy后结果为 [2,3,4,4]
+		// 当前函数最下面会重置buf数据为b.buf[:m+n],此时结果为 [2,3,4], off = 0
 		copy(b.buf, b.buf[b.off:])
 
 	} else if c > maxInt-c-n { // 超出了int最大值，报错
