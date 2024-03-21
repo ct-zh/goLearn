@@ -1,6 +1,6 @@
 module github.com/ct-zh/goLearn
 
-go 1.14
+go 1.20
 
 require (
 	entgo.io/ent v0.12.3 // indirect
