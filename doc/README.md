@@ -1,20 +1,23 @@
-# go包demo与源码解析
+# go语言基础与原理解析
 
-## index
-- [Context包源码分析,上下文](./context/README.md)
-- [golang的基本类型源码分析](./types/README.md)
-- [垃圾回收gc](./runtime/gc.md)
-- [channel源码分析](./runtime/channel.md)
-- [golang的调度模型，GMP](./runtime/GMP.md)
-- [命令行以及flag的使用](./flag/README.md)
-- [sync同步机制](./flag/README.md)
-- [go语言时间包Time的用法](./time/README.md)
-- [net包解析](./net/README.md)
-- [反射的用法](./reflect/README.md)
-- [error错误处理](./error/.)
-- [单元测试与基准测试](./testing/README.md)
+## 目录index
+- [basic - go语言基础入门](./01basic/)
+- [types - go语言基础类型原理分析](./types/)
+- [runtime - go语言运行时逻辑研究](./runtime/)
+- [sync - 并发编程](./sync/)
+- [testing - 单元测试最佳实践](./testing/)
+- [net - go语言中的网络](./net/)
+- [read - 相关读物](./read/)
+- [question - 存在疑问的短代码集合](./question/)
 
-## 关于go语源码src文件夹的一些tips
+## go语言基础
+最基本的入门教程可以参考：[菜鸟编程](https://www.runoob.com/go/go-tutorial.html)
+
+在日常使用中可以参考官方文档：[Packages](https://pkg.go.dev/)或者中文翻译的[标准库文档](https://studygolang.com/pkgdoc)
+
+开始动手编程了，建议先读一遍[EffectiveGo](https://go.dev/doc/effective_go)或者[我的翻译版本](./read/effective-go.md)，以及[The Go Programming Language Specification](https://go.dev/ref/spec)或者[翻译版本go语言编程规范](./read/go_spec.md)
+
+## go语言源码分析
 ### go源码目录
 目录中分为api、doc、include、lib、src、misc、test这7个原始目录，编译后还会生成bin、pkg，2个目录
 - api：对应工具"go tool api"相应源码 src/cmd/api;
@@ -33,62 +36,5 @@
 - [review](https://go-review.googlesource.com/c/go/+/36476)
 
 ### 源码调试
-- [如何优雅的使用GDB调试Go](https://mp.weixin.qq.com/s/xfDydcpRCmX1dR5FybI0Rw)
+GDB和Dlv都可用于调试Go语言程序。它们都支持设置断点、查看变量值、单步执行程序等功能。区别是dlv是go语言的专用调试器，比较好简单上手，而GDB则是通用调试工具。关于使用dlv debug go程序，可以[参考这一篇](./01basic/源码调试.md)。
 
-### 关于源码中出现的参数`raceenabled`与`msanenabled`
-- `raceenabled`参数代表是否启用数据竞争检测; 在`go build`或者`go run`中加入`-race`参数就代表该选项为`true`
-- `msanenabled`参数: go1.6新增的参数,类似上面的`-race`,这个参数为`-msan`,并且仅在 linux/amd64上可用;作用是将调用插入到C/C++内存清理程序;这对于测试包含可疑 C 或 C++ 代码的程序很有用。在使用新的指针规则测试 cgo 代码时，您可能想尝试一下.
-
-## 位移符号
-y << x 代表将y的二进制左移x位, 比较常用的是以2为底的位移操作, 如:2的100次方`2 << 100`
-```go
-const (
-        j = 1 << iota	// 1=1 => 左移0位, 仍然是1
-        k = 3 << iota	// 3=11 => 左移1位, 110, 4+2=6
-        l				// 3=11 => 左移2位, 1100, 8+4=12
-        n				// 3=11 => 左移3位, 11000, 16+8=24
-    )
-    println(j, k, l, n)	// 1, 6, 12, 24
-```
-
-## 编码规范
-1. 格式化规范：使用gofmt 或者 goimport；
-2. 一行最长不要超过80个字符；
-3. go vet 工具帮我们静态分析源码各种问题；
-4. import规范：
-   建议采用如下格式：
-   ```go
-   import (
-       "encoding/json"
-       "strings"
-
-       "myproject/models"
-       "myproject/controller"
-       
-       "github.com/astaxie/beego"
-       "github.com/go-sql-driver/mysql"
-   )
-   ```
-   有顺序地引入包， 不同类型使用换行符分离，第一种是标准库，第二种是项目包，第三种是第三方包。*并且不要使用相对路径*
-5. 变量申明：使用驼峰命名，多个变量申明放在一起；函数外部的全局变量申明必须使用var，不然容易踩到作用域的坑；
-6. 闭包循环的问题：
-    ```go
-    for i := 0; i <= 5; i++ {
-        // 错误的写法，打印出来的都是6
-        go func() {
-            fmt.Println(i)
-        }()
-
-        // 正确的写法
-        go func(i int) {
-            fmt.Println(i)
-        }(i)
-    }
-    time.Sleep(time.Second)
-    ```
-7. 不要随意使用panic，而是使用`log.Fatal`来记录错误
-8. 使用`{}`来更好地区分代码块(go使用`{}`来划分变量的作用范围)
-
-
-
-## reference
