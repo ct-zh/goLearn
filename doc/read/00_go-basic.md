@@ -547,3 +547,9 @@ utf8Reader := transform.NewReader(resp.Body, simplifiedchinese.GBK.NewDecoder())
     ```
 7. 不要随意使用panic，而是使用`log.Fatal`来记录错误
 8. 使用`{}`来更好地区分代码块(go使用`{}`来划分变量的作用范围)
+
+
+## 循环引用问题import cycle not allowed
+解决办法大致有这些：
+- 抽象出公共包，其他包都引用公共包的内容，而不是互相引用;(通用解决方法)
+- 将依赖转换为接口来解耦;(如A包B包循环调用，找到A包调用B包的函数，在A包中申明一套拥有相同方法的interface，A包依赖的B包改为依赖内部的interface)
