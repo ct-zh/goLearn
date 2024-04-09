@@ -34,13 +34,13 @@ type data struct {
 }
 
 // goos: darwin
-//goarch: amd64
-//pkg: github.com/ct-zh/goLearn/wheel/jsoniter
-//cpu: Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
-//BenchmarkJsoniter
-//BenchmarkJsoniter-8   	 1402230	       756.1 ns/op
-//BenchmarkJson
-//BenchmarkJson-8       	 3959030	       310.0 ns/op
+// goarch: amd64
+// pkg: github.com/ct-zh/goLearn/wheel/jsoniter
+// cpu: Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
+// BenchmarkJsoniter
+// BenchmarkJsoniter-8   	 1402230	       756.1 ns/op
+// BenchmarkJson
+// BenchmarkJson-8       	 3959030	       310.0 ns/op
 func BenchmarkJsoniter(b *testing.B) {
 	u := &data{
 		Content:     "内容",
