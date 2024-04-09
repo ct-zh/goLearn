@@ -3,6 +3,7 @@
 - 压测生成文件：`go test -run=^$ -bench=^{压测函数名}$ -cpuprofile=cpu.prof/-memprofile=mem.prof`；
 - `go tool pprof`
 
+
 ## 用法
 - web服务器
 
@@ -21,12 +22,7 @@
 
     使用`runtime/pprof`包; StartCPUProfile和StopCPUProfile;运行的时候加个参数`--cpuprofile=fabonacci.prof`生成对应的pprof文件;再使用`go tool pprof`分析;
 
-
-# pprof测试优化实例
-
-http://imooc.com/read/87/article/2440#anchor_5
-
-## top命令
+### top命令
 topN命令的输出结果默认按flat(flat%)从大到小的顺序输出：
 
 - flat列的值表示函数自身代码在数据采样过程的执行时长；
@@ -37,12 +33,15 @@ topN命令的输出结果默认按flat(flat%)从大到小的顺序输出：
 
 命令行交互模式也支持按cum值从大到小排序输出采样结果：`top -cum`
 
-## list命令
+### list命令
 我们可以通过list命令列出函数对应的源码
 
 在展开源码的同时，pprof还列出了代码中对应行的消耗时长（基于采样数据）。我们可以选择耗时较长的函数，做进一步的向下展开，这个过程类似一个对代码进行向下钻取的过程，直到找到令我们满意的结果（某个导致性能瓶颈的函数中的某段代码
 
-## 优化实践
+
+## pprof测试优化实例
+http://imooc.com/read/87/article/2440#anchor_5
+
 ### step0
 1. 执行`step0/demo_test.go`, 看到性能如下：
 
@@ -129,4 +128,29 @@ func handleHi(w http.ResponseWriter, r *http.Request) {
 - `regexp.MatchString`对每个请求,每次需要重新编译正则表达式再去匹配str; 可以改成全局`regexp.MustCompile`,直接匹配str,只需做一次编译操作;
 - `w.Write`方法优化,先是使用`fmt.Fprintf`优化一次; 后面使用`sync.Pool`几乎不消耗内存;
 
+
+
+ 
+## 使用pprof定位线上超时问题
+
+首先登陆服务机器,查看pprof分配的端口;
+
+```go
+ps -ef |grep "service_name"
+// 得到pid
+
+netstat -nultp |grep service_pid
+// 这里应该能有两个进程,其中一个是服务web端口,另一个应该就是pprof端口
+```
+
+登陆可以直接连接到pprof的机器,如果机器有go环境,则可以直接采样.
+
+如果机器没有go环境,看是否能将请求转发到服务机器上,这里使用一个proxy程序将服务机器的pprof端口转发到灰度机器的某端口上,再从测试环境存在go服务的机器上开启采样
+
+```shell
+./proxy -dst 10.99.34.158:41595 -src 0.0.0.0:10801
+
+// 然后本地采样
+go tool pprof -http=:8000 -seconds=60 http://10.100.97.2:10800/debug/pprof/profile
+```
 
