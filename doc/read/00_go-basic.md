@@ -551,5 +551,110 @@ utf8Reader := transform.NewReader(resp.Body, simplifiedchinese.GBK.NewDecoder())
 
 ## 循环引用问题import cycle not allowed
 解决办法大致有这些：
-- 抽象出公共包，其他包都引用公共包的内容，而不是互相引用;(通用解决方法)
-- 将依赖转换为接口来解耦;(如A包B包循环调用，找到A包调用B包的函数，在A包中申明一套拥有相同方法的interface，A包依赖的B包改为依赖内部的interface)
+- 1、将互相引用的代码抽象出公共包，这些包都引用公共包的内容;(通用解决方法)
+
+- 2、利用duck type的思想, 将依赖转换为接口interface来解耦;(解决比较轻的引用, 或者初期提前设计好)
+
+    方案二的代码大致为:
+    ```go
+    // =============== a包
+    package A
+
+    import B
+
+    type UserA struct {}
+
+    func (a *UserA) AFunc(b B.UserB) {
+        b.BFunc()       // a 调用 b
+    }
+
+    // =============== b包
+    package B
+
+    import A
+
+    type UserB struct {}
+
+    func (b UserB) BFunc(a A.UserA) {
+        a.AFunc()       // b 调用 a
+    }
+    ```
+
+    我们将A包修改为如下内容,解决了a包对b包的依赖
+    ```go
+    package A
+
+    type InterfaceB interface{
+        BFunc()
+    }
+
+    type UserA struct {}
+
+    func (a *UserA) AFunc(b InterfaceB) {
+        b.BFunc()       
+    }
+    ```
+
+
+- 3、A包需要的数据要调用B包的函数才能获得,同时存在第三方进行调用, 此时可以使用闭包函数解耦
+
+    代码如下:
+    ```go
+    // =============== a包
+    package A
+
+    import B
+
+    type A struct {
+        B    *b.B       // a 依赖 b
+        name string
+    }
+
+    func (i *A) SetName(name string) {
+        i.name = name
+    }
+
+    func (i *A) GetName() string {
+        return i.name
+    }
+
+    // =============== b包
+    package B
+
+    import A
+
+    type UserB struct {}
+
+    func (i *B) GetName2(a *a.A) {  // b 依赖 a
+        fmt.Println(a.GetName())
+    }
+
+    // =============== c包代码
+    bbb := b.B{}
+    aaa := a.A{B: bbb}
+    aaa.SetName("hahhahha")
+    bbb.GetName2(aaa)           // 循环调用
+    ```
+
+    可以将b包代码修改为:
+    ```go
+    package B
+
+    type UserB struct {}
+
+    func (i *B) GetName2(fn func() string) {
+        fmt.Println(fn())
+    }
+    ```
+
+    c包的调用修改为:
+    ```go
+    bbb := b.B{}
+    aaa := a.A{B: bbb}
+    aaa.SetName("hahhahha")
+    bbb.GetName2(aaa.GetName)
+    ```
+    即可解除b包对a包的依赖
+
+
+
