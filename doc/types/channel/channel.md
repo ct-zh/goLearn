@@ -152,11 +152,13 @@ call $runtime.chanrecv1
    - 如果 channel 已经关闭并且为空，则表示没有数据可接收，返回 `selected: true` 和 `received: false`。
 4. 加锁
 5. 如果 channel 已经关闭，并且缓冲区为空，则表示没有数据可接收，解锁并返回 `received: false`
-6. 查看`sendq`是否有阻塞g, 有则直接从里面拿数据;  // todo 测试一下写阻塞ch后第一次recev是否拿到的是阻塞的g数据, 而不是buf里某个g的数据
+6. 查看`sendq`是否有阻塞g, 有则直接从里面拿数据;
+	- 首先判断datasiz是否为0,如果为0则说明是`unbuffer chan`直接做发送逻辑
+	- 否则说明buf队列已满, 取出队列第一个数据, 然后将阻塞g的数据写入队列.
+	- 唤醒阻塞g, 返回received=true
 7. `qcount`大于0, 从buff中拿数据, 解锁, 返回received=true;
 8. 非阻塞模式, 直接返回received=false;
 9. 阻塞模式, gopark
-
 
 
 ### 关闭channel
@@ -203,7 +205,7 @@ close(ch1)
 ### 源码解析
 #### makechan
 
-
+// todo
 
 #### chansend1
 `chansend1`实际调用的是`chansend`, chansend函数声明为: `func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool`其参数含义为:
@@ -231,6 +233,8 @@ if c == nil {
 函数声明:`func chanrecv(c *hchan, ep unsafe.Pointer, block bool) (selected, received bool)`
 
 
+
+#### closechan
 
 
 
