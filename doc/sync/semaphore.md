@@ -12,9 +12,26 @@ type semTable [semTabSize]struct { // 固定大小的结构体数组
 }
 ```
 
-semTable是一个结构体数组, 其固定大小semTabSize写死为251, 也就是该数组有0-250、一共251个元素. 
+- semTable是一个结构体数组, 其固定大小semTabSize写死为251, 也就是该数组有0-250、一共251个元素. Go语言runtime中存在一个semTable类型, 名字也是semTable的全局变量; 每次对锁相关内容进行操作时, 对应的g会通过一种hash算法计算出自身对应的心好像应该落在semTable数组中的哪一个子元素上来进行锁操作; 
 
-pad字段是一个固定大小的字节数组, 用于填充semTable, 其大小为cpu缓存行大小减去一个semaRoot的大小, 也就是说单个`semTable`结构体的大小刚好是一个cpu缓存行的大小. 关于cpu缓存行的内容在后面小节会详细解释.
+- root字段对应的semaRoot类型代表semTable数组中单个子元素的结构;
+- pad字段是一个固定大小的字节数组, 用于填充semTable, 其大小为cpu缓存行大小减去一个semaRoot的大小, 也就是说单个`semTable`结构体的大小刚好是一个cpu缓存行的大小. 
+
+> 为什么不直接使用semaRoot结构作为数组的元素, 而是额外套一层并且增加一个固定大小的pad字段?这里涉及到一个cpu缓存行的问题:
+>
+> ### cpu缓存行
+>
+> 现代 CPU 使用CPU缓存来提高内存访问速度。CPU 优先从CPU缓存中读取数据，如果数据不在CPU缓存中，则需要从主内存中读取，这会带来明显的延迟。这些CPU缓存通常以缓存行（Cache Line）为单位进行操作，一个缓存行通常包含连续的多个字节的数据。当 CPU 需要读取或写入数据时，它会将整个缓存行加载到缓存中，即使只需要其中的一部分。
+>
+> **伪共享问题：**
+>
+> 如果多个变量共享同一缓存行，但并非所有线程都同时访问这些变量，则会出现伪共享问题。当两个或多个线程在同一缓存行的不同位置读写数据时，即使他们访问的是不同的数据，由于缓存系统以缓存行为单位进行数据同步，这就导致了不必要的数据同步操作。当一个线程修改共享变量时，整个缓存行都会被标记为脏，并回写到主内存。其他线程即使没有修改共享变量，也需要重新加载整个缓存行，这会带来不必要的开销。
+>
+> #### 举例
+>
+> 假设有两个线程，线程 A 和线程 B，它们分别在同一缓存行的不同位置写入数据。即使 A 和 B 写入的是不同的数据，但由于它们位于同一缓存行，所以每次 A 写入数据时，缓存行就会被标记为 “脏”，需要同步到主内存。然后，当 B 需要写入数据时，它首先需要从主内存中获取最新的缓存行，然后再写入数据。这个过程会反复进行，导致了大量的不必要的数据同步操作，从而降低了程序的性能。
+>
+> 因此，为了避免伪共享，我们通常需要确保不同线程操作的数据位于不同的缓存行中。这就是`semTable`结构体定义中 `pad` 字段的作用，它通过增加额外的填充，确保每个 `semaRoot` 实例都能独占一个 CPU 缓存行，从而避免了伪共享的问题。
 
 对于`semTable.semaRoot`字段,  其结构为:
 
@@ -22,17 +39,15 @@ pad字段是一个固定大小的字节数组, 用于填充semTable, 其大小�
 type semaRoot struct {
 	lock  mutex		// 互斥锁, 提供线程安全
 	treap *sudog        // 主要结构, 是一个tree+heap 树堆的根节点, 这个平衡树中的每个节点都是一个唯一的等待者（waiter）。
-	nwait atomic.Uint32 // 原子操作的无符号32位整数，表示等待者的数量。由于它是原子操作的，所以可以在不加锁的情况下读取它。
+	nwait atomic.Uint32 // 原子操作的无符号32位整数，表示waiter的数量。由于它是原子操作的，所以可以在不加锁的情况下读取它。
 }
 ```
 
 `semaRoot`的主要目的是管理在特定地址上等待的 `sudog`。每个 `sudog` 可能会通过 `s.waitlink` 指向在同一地址上等待的其他 `sudog` 的列表。对于这些 `sudog` 的内部列表操作都是 O(1) 的时间复杂度。而对于顶级的 `semaRoot` 列表的扫描则是 O(log n) 的时间复杂度，其中 n 是阻塞在给定 `semaRoot` 哈希值上的不同地址的 `goroutine` 的数量。
 
-`treap`是按照lock addr 排列的一颗二叉搜索树. 如果现在要加一个锁, 锁里面有一个信号成员，然后这个信号成员它有一个地址，他就需要通过这个地址来在这个二叉搜索树上最终找到它在哪一个节点上，然后它的每一个节点又是一个链表，看起来比较像一个三维的结构. 这251个元素其实是也是用它的锁的信号量地址，然后挪进来。
+`treap`是按照lock addr 排列的一棵二叉搜索树. 如果现在某个g要加锁, 锁存在一个对应的信号成员，Go语言会通过这个信号成员的地址在这个二叉搜索树上找到它处于的节点; 如果程序有任何锁发生阻塞，最终都是挂在semaRoot上面。sudog根据信号成员地址找到属于它的节点以后，挂在其等待列表后面.
 
-既然是一个二叉搜索树结构，为了保证它的平衡，给每一个节点赋值了一个ticket, 在sudog初始化的时候，用fastrand的函数来生成的。
-
-我们如果有任何的所发生阻塞的话，最终都是挂在semaRoot上面。找到属于它的节点以后，挂在它的等待列表后面，通过这个same table来找，找他的那棵树，然后再挂在那个对应的节点的元素后面. ( todo 优化上三段表述 )
+treap作为一棵二叉搜索树, 为了保证treap的平衡，在g挂上树时, Go语言会给对应节点赋值了一个ticket, 这个ticket是在sudog初始化的时候，用fastrand的函数来生成的。
 
 ### semaphore相关函数
 
@@ -96,9 +111,9 @@ func cansemacquire(addr *uint32) bool {
 }
 ```
 
-- 获取当前 goroutine, 确保当前的操作是在当前 goroutine 的栈上进行的(gp.m代表当前g对应的m, 如果m当前的g(curg字段)不等于该g, 说明不是在当前g上运行的); 如果不是,则抛出异常, 因为信号量获取操作必须在调用它的线程上进行. 
+- 获取当前 goroutine, 确保当前的操作是在当前 goroutine 的栈上进行的(gp.m代表当前g对应的m, 如果m当前的g(curg字段)不等于该g, 说明不是在当前g上运行的); 如果不是,则抛出异常, **因为信号量获取操作必须在调用它的线程上进行. **
 
-- easy case 简单的情况: 如果可以通过CAS操作直接获取信号量，那么就直接返回;
+- easy case 简单的情况: 如果可以通过CAS操作直接操作信号量，那么就直接返回;
 
 ```go
 func semacquire1(addr *uint32, lifo bool, profile semaProfileFlags, skipframes int, reason waitReason) {
@@ -124,8 +139,8 @@ func semacquire1(addr *uint32, lifo bool, profile semaProfileFlags, skipframes i
 } 
 ```
 
-- `acquireSudog`   todo
-- `semtable.rootFor` 找到信号量的根节点
+- `acquireSudog`   获取一个sudog对象; 具体解析见下面的关联函数;
+- `semtable.rootFor` 找到信号量的根节点;
 - 根据 `profile` 标志判断是否需要进行阻塞态分析和互斥锁分析，并设置相应的时间戳
 
 下面这段是quire的核心代码:
@@ -171,6 +186,16 @@ func semacquire1(addr *uint32, lifo bool, profile semaProfileFlags, skipframes i
 
 如果启用了阻塞分析，那么就记录阻塞事件; 然后`releaseSudog`释放 `sudog` ，表示当前的等待者已经完成了信号量的获取操作;
 
+> 该函数的流程是, 传入信号量地址并试图通过CAS对其进行操作( Easy Case ), 如果不能操作说明存在其他线程占用; 
+>
+> 于是该函数去申请一个空闲的sudog做专门的无限循环, 循环内容仍然是试图通过CAS对信号量进行操作;
+>
+> 每次循环都要给root加锁,并且给root的waiter数量+1; 
+>
+> 如果CAS操作失败了, 则会将当前sudog挂载到root后,并且将当前sudog gopark暂停;
+>
+> 如果CAS操作成功, 退出无限循环, 释放sudog;
+
 
 ### semrelease1 
 
@@ -200,7 +225,7 @@ easy case操作:
 - 获取根节点
 - 使用原子操作 (`atomic.Xadd(addr, 1)`) 将信号量值加 1
 - 由于 `semacquire` 函数在循环中可能会错过唤醒，因此这里需要**在**增加信号量值**之后** 再次检查等待者数量 (`root.nwait.Load()`)
-- 如果没有等待者 (`root.nwait` 为 0)，则直接返回，释放操作完成
+- 如果没有等待者 (`root.nwait` 为 0)说明没有阻塞的sudog，则直接返回，释放操作完成
 
 ```go
 func semrelease1(addr *uint32, handoff bool, skipframes int) {
@@ -221,11 +246,11 @@ func semrelease1(addr *uint32, handoff bool, skipframes int) {
 
 - 获取 `root` 节点的锁 (`lockWithRank`)
 - 再次检查等待者数量 (`root.nwait.Load()`)。如果此时没有等待者，可能是因为其他 Goroutine 已经消费了该信号量，不需要再唤醒其他等待者。释放锁并返回
-- 如果还有等待者，则从队列中取出一个等待描述符 (`s`) 和记录唤醒时间 (`t0`)
+- 如果还有等待者，则从队列中取出一个sudog并记录唤醒时间 (`t0`)
 - 如果取到了等待描述符 (`s` 不为 nil)，则将等待者数量减 1 (`root.nwait.Add(-1)`)。
 - 释放锁 (`unlock(&root.lock)`)
 
-下面是处理从dequeue中取到等待者waiter后的操作
+下面是处理从dequeue中取到sudog waiter后的操作
 
 ```go
 func semrelease1(addr *uint32, handoff bool, skipframes int) {
@@ -233,7 +258,7 @@ func semrelease1(addr *uint32, handoff bool, skipframes int) {
 	if s != nil {
 		acquiretime := s.acquiretime
 		if acquiretime != 0 {
-			mutexevent(t0-acquiretime, 3+skipframes)
+			mutexevent(t0-acquiretime, 3+skipframes) // 性能分析
 		}
 		if s.ticket != 0 {
 			throw("corrupted semaphore ticket")
@@ -258,16 +283,10 @@ func readyWithTime(s *sudog, traceskip int) {
 }
 ```
 
-- 获取等待者开始等待的时间 (`acquiretime`)，用于性能分析
-
-- 如果进行了互斥锁分析，则记录唤醒等待者消耗的时间
-
-- 检查等待描述符的 (`s.ticket`) 是否为 0。如果不是，则抛出异常，表示信号量ticket损坏
-
+- 获取等待者开始等待的时间 (`acquiretime`)，用于性能分析; 如果进行了互斥锁分析，则记录唤醒等待者消耗的时间
+- 检查sudog的 (`s.ticket`) 是否为 0。如果不是，则抛出异常，表示信号量ticket损坏
 - 检查 `handoff` 标志。如果是 `true` (饥饿模式)，并且可以直接再次获取信号量 (`cansemacquire(addr)`)，则将等待描述符的(`s.ticket`) 设置为 1
-
-- 将等待描述符 (`s`) 放入就绪队列 (`readyWithTime`)，等待 Goroutine 调度
-
+- 将等待描述符 (`s`) 放入就绪队列 (`readyWithTime`,  goReady的包装)，等待 Goroutine 调度
 - 如果等待描述符的ticket为 1 并且当前 Goroutine 没有持有的互斥锁 (`getg().m.locks == 0`)，则进行 Goroutine 所有权转移 (仅限饥饿模式)
 
   - 将被唤醒的 Goroutine (`s`) 标记为当前处理器 (P) 的下一个可运行 Goroutine (`runnext`)
@@ -312,8 +331,6 @@ func (root *semaRoot) rotateRight(y *sudog)
 ```
 
 在queue时进行左旋, 在dequeue时进行右旋;
-
-
 
 ### 关联函数 acquireSudog
 
@@ -407,19 +424,4 @@ proc函数, 用来获取一个`sudog`对象，如果缓存中没有，则创建�
 4. `goyield_m` 函数的作用是将当前的 goroutine 放回到当前 P（Processor，表示处理器）的运行队列中，而不是全局的运行队列中。这个操作是通过将当前 goroutine 放回当前 P 的运行队列中来实现的，而不是放回全局的运行队列中。这一点与 `Gosched` 函数的行为不同。
 
 总的来说，`goyield` 函数是用于让出 CPU 执行权的函数，与 `Gosched` 函数相比，它的行为略有不同：它发出 `GoPreempt` 跟踪事件，将当前 goroutine 放回当前 P 的运行队列中。
-
-
-### cpu缓存行
-
-现代 CPU 使用CPU缓存来提高内存访问速度。CPU 优先从CPU缓存中读取数据，如果数据不在CPU缓存中，则需要从主内存中读取，这会带来明显的延迟。这些CPU缓存通常以缓存行（Cache Line）为单位进行操作，一个缓存行通常包含连续的多个字节的数据。当 CPU 需要读取或写入数据时，它会将整个缓存行加载到缓存中，即使只需要其中的一部分。
-
-**伪共享问题：**
-
-如果多个变量共享同一缓存行，但并非所有线程都同时访问这些变量，则会出现伪共享问题。当两个或多个线程在同一缓存行的不同位置读写数据时，即使他们访问的是不同的数据，由于缓存系统以缓存行为单位进行数据同步，这就导致了不必要的数据同步操作。当一个线程修改共享变量时，整个缓存行都会被标记为脏，并回写到主内存。其他线程即使没有修改共享变量，也需要重新加载整个缓存行，这会带来不必要的开销。
-
-#### 举例
-
-假设有两个线程，线程 A 和线程 B，它们分别在同一缓存行的不同位置写入数据。即使 A 和 B 写入的是不同的数据，但由于它们位于同一缓存行，所以每次 A 写入数据时，缓存行就会被标记为 “脏”，需要同步到主内存。然后，当 B 需要写入数据时，它首先需要从主内存中获取最新的缓存行，然后再写入数据。这个过程会反复进行，导致了大量的不必要的数据同步操作，从而降低了程序的性能。
-
-因此，为了避免伪共享，我们通常需要确保不同线程操作的数据位于不同的缓存行中。这就是`semTable`结构体定义中 `pad` 字段的作用，它通过增加额外的填充，确保每个 `semaRoot` 实例都能独占一个 CPU 缓存行，从而避免了伪共享的问题。
 
