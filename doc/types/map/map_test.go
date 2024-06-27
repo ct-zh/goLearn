@@ -1,7 +1,9 @@
 package _map
 
 import (
+	"math/rand"
 	"testing"
+	"time"
 )
 
 // map多键索引
@@ -20,4 +22,54 @@ func Test(t *testing.T) {
 	m[u2] = 20
 	t.Log(m[u1])
 	t.Log(m[u2])
+}
+
+// fasthttp 常见优化: 尽可能使用slice代替map
+// 运行以下benchmark
+// goos: darwin
+// goarch: amd64
+// pkg: github.com/ct-zh/goLearn/doc/types/map
+// cpu: Intel(R) Core(TM) i7-7700HQ CPU @ 2.80GHz
+// BenchmarkSlice
+// BenchmarkSlice-8   	49704374	        24.26 ns/op
+// BenchmarkMap
+// BenchmarkMap-8     	 7388773	       164.5 ns/op
+const size = 1000000
+
+// generateSlice generates a slice with random integer values
+func generateSlice(size int) []int {
+	rand.Seed(time.Now().UnixNano())
+	s := make([]int, size)
+	for i := range s {
+		s[i] = rand.Intn(size)
+	}
+	return s
+}
+
+// generateMap generates a map with random string keys and integer values
+func generateMap(size int) map[int]int {
+	rand.Seed(time.Now().UnixNano())
+	m := make(map[int]int, size)
+	for i := 0; i < size; i++ {
+		m[i] = rand.Intn(size)
+	}
+	return m
+}
+
+// Benchmark for slice
+func BenchmarkSlice(b *testing.B) {
+	s := generateSlice(size)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = s[rand.Intn(size)]
+	}
+}
+
+// Benchmark for map
+func BenchmarkMap(b *testing.B) {
+	m := generateMap(size)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = m[rand.Intn(size)]
+	}
 }
