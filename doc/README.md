@@ -36,5 +36,5 @@
 - [review](https://go-review.googlesource.com/c/go/+/36476)
 
 ### 源码调试
-GDB和Dlv都可用于调试Go语言程序。它们都支持设置断点、查看变量值、单步执行程序等功能。区别是dlv是go语言的专用调试器，比较好简单上手，而GDB则是通用调试工具。关于使用dlv debug go程序，可以[参考这一篇](./01basic/源码调试.md)。
+GDB和Dlv都可用于调试Go语言程序。它们都支持设置断点、查看变量值、单步执行程序等功能。区别是dlv是go语言的专用调试器，比较好简单上手，而GDB则是通用调试工具。关于使用dlv debug go程序，可以[参考这一篇](./read/assembly-go.md)。
 

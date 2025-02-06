@@ -16,6 +16,7 @@ require (
 	github.com/pkg/profile v1.7.0
 	github.com/sashabaranov/go-openai v1.5.7
 	github.com/smartystreets/goconvey v1.6.4
+	github.com/stretchr/testify v1.8.2
 	github.com/yanyiwu/gojieba v1.1.2
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.0.4
@@ -23,6 +24,7 @@ require (
 )
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/go-sql-driver/mysql v1.5.1-0.20200311113236-681ffa848bae // indirect
 	github.com/google/pprof v0.0.0-20211214055906-6f57359322fd // indirect
@@ -36,8 +38,9 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/smartystreets/assertions v1.2.0 // indirect
-	github.com/stretchr/testify v1.8.2 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 // indirect
 	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

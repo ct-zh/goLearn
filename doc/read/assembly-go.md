@@ -1,18 +1,33 @@
-# 源码调试
+# assembly go
 
-// todo https://chromium.googlesource.com/chromiumos/docs/+/master/constants/syscalls.md#naming
+作为求助欲望旺盛的Go语言开发者, 难免对Go语言底层实现逻辑兴致盎然. 尤其Go底层自举实现, 面对世界顶级的Go语言大师提供的黄金屋, 相较于其他语言, 我们更容易享受到这款饕餮盛宴. 
+
+可能想要了解底层的一些关键实现, 懂Go语言的基本语法就可以窥见一二. 但是想要将其流程如探囊取物般完整走下去, 可能我们还需要一些操作系统和汇编的基础知识. 下面我将以一名小白的视角, 试图去了解Go语言的运行全貌.
+
+“工欲善其事, 必先利其器”, 对于小白来说, 可能挑选一个好用方便的工具, 比其他方法更容易提高效率. 于是我去问了一下chatGPT, 它给我推荐了两款工具: `delve`和`gdb`. 那我们先从delve开始, 揭开语法背后的秘密~
 
 ## delve
 
 ### 安装与启动
-> 建议先参考官方文档：[如何使用dlv调试go语言程序](https://github.com/go-delve/delve/blob/master/README.md)
 
-首先安装docker，在当前目录下执行`docker build -t dlv .`命令，docker会去执行[Dockerfile](./Dockerfile)中的命令，下载dlv以及其基本的环境。
+首先安装docker;之后找一个空目录,新建文件`Dockerfile`, 将下面内容粘贴到文件中:
+```dockerfile
+FROM centos
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-* \
+&& sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-* \
+&& yum install golang -y \
+&& yum install dlv -y \
+&& yum install binutils -y \
+&& yum install vim -y \
+&& yum install gdb -y
+```
 
-> 为什么要使用docker环境 ?  因为不同系统环境规范不同, go在不同的环境下有不同的编译方案; 建议统一使用linux下的编译结果进行调试;
+在dockerfile的目录下执行`docker build -t dlv .`命令, 开始构建镜像.
 
-进入需要调试的目录，假设需要调试的文件为test.go, 执行命令`docker run --rm -it -v $(pwd):/app dlv dlv debug /app/test.go`开始dlv调试。下面是命令详解
-    
+> 为什么要使用docker环境 ?  因为不同系统环境规范不同, go在不同的环境下有不同的编译方案; 大部分情况下我们的二进制程序会运行在linux环境下,因此建议统一使用linux环境下的编译结果进行调试.
+> 如果你的环境本来就是linux系统, 可以参考这篇官方文档进行操作: [如何使用dlv调试go语言程序](https://github.com/go-delve/delve/blob/master/README.md)
+
+进入需要调试的目录，假设需要调试的文件为test.go, 执行命令`docker run --rm -it -v $(pwd):/app dlv dlv debug /app/test.go`开始dlv调试。下面是命令详解:
 - `--rm`选项指示docker在容器退出后自动删除容器;
 
 - `-it`选项指示docker在启动容器时分配一个伪tty;
@@ -23,7 +38,10 @@
 
 - 第二个dlv代表在容器中执行dlv命令，命令为`dlv debug /app/test.go` 调试test.go程序
 
-### 举个例子
+### 开始尝试调试程序
+
+举个例子:
+
 ```go
 func main() {
     var nums1 []interface{}
@@ -35,7 +53,7 @@ func main() {
 
 首先执行命令`dlv debug .`进入调试模式，键入`list`查看当前程序的执行位置：
 
-```
+```shell
      3:	// license that can be found in the LICENSE file.
      4:
      5:	#include "textflag.h"
@@ -47,9 +65,9 @@ func main() {
     11:		JMP	_rt0_amd64_lib(SB)
 ```
 
-可知当前程序还在rt0，并未开始真正执行程序。可以在main函数开头打断点`break main.main`或者`b main.main`，然后使用`continue`或者`c`使程序运行到这里:
+当前程序似乎还在程序入口的位置，并未开始真正执行用户代码。我们还是先从用户代码看起吧, 可以在main函数开头打断点, 使用命令:`break main.main`或者`b main.main`，然后输入命令`continue`或者`c`使程序运行到这里:
 
-```
+```shell
 (dlv) b main.main
 Breakpoint 1 set at 0x4b66b8 for main.main() .app/test.go:5
 (dlv) c
@@ -66,9 +84,9 @@ Breakpoint 1 set at 0x4b66b8 for main.main() .app/test.go:5
     10:	}
 ```
 
-我想查看第一行`nums1`变量的具体内容，先给第二行打断点：`b main.main:2`，然后用`c`执行到第二行，此时第一行已经执行完毕了。使用`locals`命令获取当前函数堆栈的信息，使用`whatis nums1`获取nums1变量的类型，使用`print nums1`获取该变量的数据，使用`print &nums1`来获取该变量的内存地址：
+假设我们想查看`nums1`变量的具体内容，可以先给第二行打断点：`b main.main:2`，然后用`c`执行到第二行。可以使用一系列命令来查看`nums1`变量的具体内容:
 
-```
+```shell
 > main.main() .app/test.go:7 (hits goroutine(1):1 total:1) (PC: 0x4b66e6)
      2:
      3:	import "fmt"
@@ -89,16 +107,20 @@ nums1 = []interface {} len: 0, cap: 0, nil
 (*[]interface {})(0xc000191f30)
 ```
 
+- locals命令可以看到当前函数堆栈的信息, 上面可以看到 `num1`变量是`[]interface{}`类型, len=0, cap=0, 实际内容是nil.
+- `whatis nums1`获取nums1变量的类型
+- `print nums1`获取该变量内部数据
+- `print &nums1`来获取该变量的内存地址
+
 调试完毕后可以使用`exit`退出，或者使用`restart`重开程序。
 
+我们跟随上述例子, 第一次使用delve工具来调试了一个Go语言程序, 下面我们将列出delve的一些常用的命令, 并结合一些例子, 具体讲解如何使用delve, 查看Go语言底层的运行逻辑.
 
+### Delve命令
 
+####  启动调试
 
-### delve命令
-
-#### 启动调试
 - `dlv debug [package]`编译当前目录下的 "main "软件包，并开始调试;
-
     - 要向程序传递flag，请使用`--`分隔它们： `dlv debug github.com/me/foo/cmd/foo -- -arg1 `
 
 - `dlv test [package]`可以在单元测试的上下文中开始新的调试会话;
@@ -110,9 +132,8 @@ nums1 = []interface {} len: 0, cap: 0, nil
 - `dlv attach <pid>`附加到已运行的进程并开始调试
 
 - `dlv core <exe> <core>` 检查核心转储coredump（仅支持 linux 和 windows 的core dump）。
-
     - core 命令将打开指定的 core 文件和相关的可执行文件，让你检查获取 core dump 时的进程状态。目前支持 linux/amd64 和 linux/arm64 core 文件、windows/amd64 minidump 以及 Delve 的 "dump "命令生成的 core 文件。
-
+    
 - `dlv replay <rr trace>` 重放[Mozilla rr](https://github.com/mozilla/rr)的trace
 
 - `dlv trace [package]` 跟踪程序执行。
@@ -216,66 +237,9 @@ types ---------------------- 打印类型列表
 
 
 
-- [使用 debugger 学习 golang](https://xargin.com/debugger/)
-
-- [如何优雅的使用GDB调试Go](https://mp.weixin.qq.com/s/xfDydcpRCmX1dR5FybI0Rw)
-
-
-
-### 关于源码中出现的参数`raceenabled`与`msanenabled`
-- `raceenabled`参数代表是否启用数据竞争检测; 在`go build`或者`go run`中加入`-race`参数就代表该选项为`true`
-- `msanenabled`参数: go1.6新增的参数,类似上面的`-race`,这个参数为`-msan`,并且仅在 linux/amd64上可用;作用是将调用插入到C/C++内存清理程序;这对于测试包含可疑 C 或 C++ 代码的程序很有用。在使用新的指针规则测试 cgo 代码时，您可能想尝试一下.
-
-
 ### delve实践
 
-#### 使用dlv验证空结构体为何不占用任何内存空间
-
-编写代码
-```go
-func main() {
-	var b = struct{}{}
-	bAddr := unsafe.Pointer(&b)
-	fmt.Printf("b address = %p\n", bAddr)
-}
-```
-
-命令行执行`dlv debug test.go`, 进入dlv调试界面, 先执行 `b main.main` 与 `c` 使程序执行到main函数
-```
-(dlv) c
-> main.main() ./test.go:9 (hits goroutine(1):1 total:1) (PC: 0x10b6f4a)
-     4:		"fmt"
-     5:		"sort"
-     6:		"unsafe"
-     7:	)
-     8:
-=>   9:	func main() {
-    10:		var b = struct{}{}
-    11:		bAddr := unsafe.Pointer(&b)
-    12:		fmt.Printf("b address = %p\n", bAddr)
-    13:	}
-```
-
-执行命令`si`, 查看下一步, 也就是申明变量b, 可以看到其汇编指令
-```
-(dlv) si
-> main.main() ./test.go:10 (PC: 0x10b6f5f)
-	test.go:9	0x10b6f44	0f8685000000	jbe 0x10b6fcf
-	test.go:9	0x10b6f4a*	4883ec70	sub rsp, 0x70
-	test.go:9	0x10b6f4e	48896c2468	mov qword ptr [rsp+0x68], rbp
-	test.go:9	0x10b6f53	488d6c2468	lea rbp, ptr [rsp+0x68]
-	test.go:10	0x10b6f58*	488d1561500d00	lea rdx, ptr [runtime.zerobase]
-=>	test.go:10	0x10b6f5f	4889542438	mov qword ptr [rsp+0x38], rdx
-	test.go:11	0x10b6f64*	4889542428	mov qword ptr [rsp+0x28], rdx
-	test.go:12	0x10b6f69	440f117c2440	movups xmmword ptr [rsp+0x40], xmm15
-	test.go:12	0x10b6f6f	488d4c2440	lea rcx, ptr [rsp+0x40]
-	test.go:12	0x10b6f74	48894c2430	mov qword ptr [rsp+0x30], rcx
-	test.go:12	0x10b6f79	8401		test byte ptr [rcx], al
-```
-
-其中, `test.go:10 0x10b6f58* 488d1561500d00 lea rdx, ptr [runtime.zerobase]`这行表示 变量b指向的地址是 `runtime.zerobase`, 这是go语言的一个空地址变量, 可以试试创建更多的空结构体, 所有空结构体都是指向这个`runtime.zerobase`.
-
-
+#### 验证空结构体不占用任何内存空间
 
 
 
