@@ -3,12 +3,17 @@
 > 以下代码 see [代码参考](./ch/main.go) ; 源码分析基于go1.20
 
 ### channel的基本结构
-用dlv debug下面代码, 可以知道不管是`buffer channel` 还是 `unbuffer channel` 都是通过`runtime.makechan`来创建:
+为了找到channel创建的入口, 我们使用dlv debug下面代码:
 
 ```go
+// dlv debug main.go
 ch1 := make(chan int)
 ch2 := make(chan int, 3)
+```
 
+使用`disass`  命令阅读汇编代码:
+
+```go
 main.go:6   lea rax, ptr [rip+0x77f3]
 main.go:6   xor ebx, ebx
 main.go:6   call $runtime.makechan    // <- 在这里调用了makechan函数
@@ -21,13 +26,15 @@ main.go:7   mov qword ptr [rsp+0x38], rax // 将 RAX 寄存器中的值（即刚
 
 ```
 
-在runtime包里搜makechan函数, 可以得到其声明为:`func makechan(t *chantype, size int) *hchan`, 返回的hchan结构为:
+`buffer channel` 和 `unbuffer channel` 都是通过`runtime.makechan`函数来初始化channel
+
+在Go源码中搜索runtime.makechan函数, 可以得到其声明为:`func makechan(t *chantype, size int) *hchan`, 返回的hchan结构为:
 
 ```go
 type hchan struct {
 	qcount   uint           // 队列中的总数据大小
 	dataqsiz uint           // 循环队列的大小
-	buf      unsafe.Pointer // points to an array of dataqsiz elements  环形数组
+	buf      unsafe.Pointer // 环形数组
 	elemsize uint16
 	closed   uint32
 	elemtype *_type // element type
@@ -45,54 +52,60 @@ type hchan struct {
 - `recvq`与`sendq` 用来保存挂起的g的队列, 分别代表buf为空等待接收的g列表, 与buf已满等待发送的g列表
 - ps.虽然大部分书上都提到并发处理不要用锁, 而是用channel. 但是其实channel底层也还是带了一把锁
 
+### makechan源码分析
+
+// toto
+
+
+
 
 ### 写channel
 
-写channel应该有四种情况:
-- 写入nil chan
-- unbuffer channel直接写入:  `ch2 <- 1`
-- buffer channel未阻塞写入、 阻塞写入
-- 已关闭的channel写入
+写channel一般有四种情况, 写出如下代码再继续用dlv查找其实际处理写入的函数:
 
-继续使用dlv查找往channel中写入数据的处理:
 ```go
-// 情况0: 写入nil chan
+// 情况1: 写入nil chan
 var ch3 chan int
 ch3 <- 1
-
-// ==== 汇编
-xor eax, eax
-lea rbx, ptr [rip+0x27f15]
-nop dword ptr [rax+rax*1], eax
-call $runtime.chansend1
-
-// 情况一: 写入unbuffer ch
+// 情况二: 写入unbuffer ch
 ch1 <- 1
-
-// ==== 汇编
-lea rbx, ptr [rip+0x27e6c]
-call $runtime.chansend1
-
-// 情况二: 写入buffer ch
+// 情况三: 写入buffer ch  (阻塞/未阻塞 两种情况)
 ch2 <- 1
-
-// 汇编代码
-mov rax, qword ptr [rsp+0x38]
-lea rbx, ptr [rip+0x27d50]
-call $runtime.chansend1
-
-
-// 情况三: 写入已经关闭的ch
+// 情况四: 写入已经关闭的ch
 close(ch1)
 ch1 <- 1
-
-// 汇编
-mov rax, qword ptr [rsp+0x40]
-lea rbx, ptr [rip+0x27f11]
-nop
+// ==== 汇编
 call $runtime.chansend1
 ```
-可以看到三种情况下往channel中写数据都是使用`runtime.chansend1`方法. 通过阅读方法源码, 我们可以将其大致简化为以下步骤:
+看到三种情况下往channel中写数据都是使用`runtime.chansend1`方法. 我们着重分析一下这个方法:
+
+### 源码分析 runtime.chansend1
+// todo
+
+`chansend1`实际调用的是`chansend`, chansend函数声明为: `func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool`其参数含义为:
+
+- c: 指向 channel 的指针
+- ep: 要发送的数据的指针
+- block: 是否阻塞等待发送成功, 在`c <- 1`情况下默认为true, 在select里默认为false
+- callerpc: 调用方的PC寄存器地址, 这个使用stubs的通用方法`getcallerpc()`获取
+- 返回值true=发送成功, false=发送失败 (非阻塞模式下 channel 满或者 channel 已关闭)
+
+
+代码逻辑: 
+首先检查 channel 是否为空:如果为空，并且是非阻塞模式，则直接返回 false。如果为空，并且是阻塞模式，则挂起当前线程。
+```go
+if c == nil {
+	if !block {
+		return false
+	}
+	gopark(nil, nil, waitReasonChanSendNilChan, traceEvGoStop, 2)
+	throw("unreachable")
+}
+```
+
+
+
+通过阅读方法源码, 我们可以将其大致简化为以下步骤:
 
 1. 检查 channel 是否为空
 2. 非阻塞模式(select)提前判断 : 检查channel是否关闭以及是否已满，如果不满足发送条件则直接返回false
@@ -105,7 +118,7 @@ call $runtime.chansend1
 9. 出现接收方后唤醒,返回true.
 
 
-### 读channel
+### 读channel, chanrecv源码分析
 读channel应该有如下几种情况:
 - 读取nil chan
 - 读取一个空的channel/读unbuffer channel
@@ -117,25 +130,11 @@ call $runtime.chansend1
 ```go
 // 读取unbuffer ch
 <-ch1
-
-mov rax, qword ptr [rsp+0x48]
-xor ebx, ebx
-call $runtime.chanrecv1
-
 // 读取buffer ch
 <-ch2
-
-mov rax, qword ptr [rsp+0x10]
-xor ebx, ebx
-call $runtime.chanrecv1
-
 // 读取已经关闭的ch
 close(ch1)
 <-ch1
-
-xor ebx, ebx
-call $runtime.chanrecv1
-
 // 读取nil chan
 <-ch3    
 
@@ -143,7 +142,7 @@ xor eax, eax
 xor ebx, ebx
 call $runtime.chanrecv1
 ```
-可以发现也都是在`runtime.chanrecv1`方法中进行读取操作.recv函数大致步骤如下:
+都是在`runtime.chanrecv1`方法中进行读取操作.recv函数大致步骤如下:
 
 1. 存在两个返回值, 其中第一个基本默认为true, 而第二个参数`received`表示是否成功接收到了数据;
 2. 检查 channel 是否为空;
@@ -161,7 +160,8 @@ call $runtime.chanrecv1
 9. 阻塞模式, gopark
 
 
-### 关闭channel
+
+### 关闭channel, closechan源码分析
 
 dlv查看关闭channel调用的函数:
 
@@ -202,39 +202,62 @@ close(ch1)
 - `glist` 列表用来临时存储所有因 channel 关闭而需要唤醒的程序。
 - 在释放 channel 锁之后再唤醒这些程序，可以避免出现竞争条件。
 
-### 源码解析
-#### makechan
+### 问题
 
-// todo
-
-#### chansend1
-`chansend1`实际调用的是`chansend`, chansend函数声明为: `func chansend(c *hchan, ep unsafe.Pointer, block bool, callerpc uintptr) bool`其参数含义为:
-
-- c: 指向 channel 的指针
-- ep: 要发送的数据的指针
-- block: 是否阻塞等待发送成功, 在`c <- 1`情况下默认为true, 在select里默认为false
-- callerpc: 调用方的PC寄存器地址, 这个使用stubs的通用方法`getcallerpc()`获取
-- 返回值true=发送成功, false=发送失败 (非阻塞模式下 channel 满或者 channel 已关闭)
-
-
-代码逻辑: 
-首先检查 channel 是否为空:如果为空，并且是非阻塞模式，则直接返回 false。如果为空，并且是阻塞模式，则挂起当前线程。
 ```go
-if c == nil {
-	if !block {
-		return false
-	}
-	gopark(nil, nil, waitReasonChanSendNilChan, traceEvGoStop, 2)
-	throw("unreachable")
+runtime.GOMAXPROCS(1)
+fmt.Printf("GOMAXPROCS = %d\n", runtime.GOMAXPROCS(0))
+const count = 12
+
+c := make(chan int, 2)
+go func() {
+    for i := 0; i < count; i++ {
+        fmt.Println("send:", i)
+        c <- i
+    }
+}()
+
+time.Sleep(time.Millisecond) // go park等到c buf被塞满
+
+for i := 0; i < count; i++ {
+    fmt.Printf("got: %d = %d\n", i, <-c)
 }
 ```
 
-#### chanrecv
-函数声明:`func chanrecv(c *hchan, ep unsafe.Pointer, block bool) (selected, received bool)`
+输出为:
+```shell
+GOMAXPROCS = 1
+send: 0
+send: 1
+send: 2
+got: 0 = 0
+got: 1 = 1
+got: 2 = 2
+send: 3
+send: 4
+send: 5
+send: 6
+got: 3 = 3
+got: 4 = 4
+got: 5 = 5
+got: 6 = 6
+send: 7
+send: 8
+send: 9
+send: 10
+got: 7 = 7
+got: 8 = 8
+got: 9 = 9
+got: 10 = 10
+send: 11
+got: 11 = 11
+```
+
+问题是: chan容量为2, 在第一轮发送0-2时,buf内容为0、1,而发送2的g应该在sendq里被挂起. 此时应该开始切换g到receive的g, 接收到0、1、2. 第一轮发送符合预期.
+
+但是从第二轮起发送了3、4、5、6四条记录, 也就是说buf写入3、4, 5写入sendq后并未产生g调度, 而是继续写入6后才进行g调度.
 
 
-
-#### closechan
 
 
 

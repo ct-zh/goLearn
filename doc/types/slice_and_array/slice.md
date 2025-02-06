@@ -19,6 +19,7 @@ b := []int{}    // 空切片
 区别:
 - nil切片slice.array值为nil,而空切片slice.array指向一个空数组;
 - `a == nil`, `b != nil`
+- 两个的len与cap都为0
 
 两者都可以通过`append`方法添加数据;
 
