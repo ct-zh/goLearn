@@ -5,16 +5,24 @@ import (
 	"path/filepath"
 	"strings"
 
-	codecatcher "github.com/ct-zh/goLearn/create_my_project/code_catcher"
+	"github.com/ct-zh/goLearn/create_my_project/code_catcher/types"
 )
 
 // FlowchartWriter Mermaid流程图生成器
 type FlowchartWriter struct {
-	sources map[string]*codecatcher.Source
+	sources map[string]*types.Source
+}
+
+// LayeredEntityReferences 分层的实体引用关系
+type LayeredEntityReferences struct {
+	EntityName string   // 当前实体名称
+	Type       string   // 实体类型
+	Callers    []string // 调用者
+	Callees    []string // 被调用者
 }
 
 // NewFlowchartWriter 创建新的流程图生成器
-func NewFlowchartWriter(sources map[string]*codecatcher.Source) *FlowchartWriter {
+func NewFlowchartWriter(sources map[string]*types.Source) *FlowchartWriter {
 	return &FlowchartWriter{
 		sources: sources,
 	}
@@ -208,4 +216,294 @@ func containsInterface(implements []string, ifaceName string) bool {
 		}
 	}
 	return false
+}
+
+// collectAllEntities 收集所有实体信息
+func (w *FlowchartWriter) collectAllEntities() []LayeredEntityReferences {
+	entities := make(map[string]*LayeredEntityReferences)
+
+	// 遍历所有源文件
+	for _, source := range w.sources {
+		// 处理结构体
+		for _, st := range source.Structs {
+			entityName := st.Name
+			if _, exists := entities[entityName]; !exists {
+				entities[entityName] = &LayeredEntityReferences{
+					EntityName: entityName,
+					Type:       "struct",
+				}
+			}
+
+			// 处理方法
+			for _, method := range st.Methods {
+				methodName := fmt.Sprintf("%s.%s", st.Name, method.Name)
+				if _, exists := entities[methodName]; !exists {
+					entities[methodName] = &LayeredEntityReferences{
+						EntityName: methodName,
+						Type:       "method",
+					}
+				}
+
+				// 添加调用关系（排除自引用）
+				for _, ref := range method.References {
+					callerName := ref.Caller.Name
+					if callerName != methodName { // 排除自引用
+						entities[methodName].Callers = appendUnique(entities[methodName].Callers, callerName)
+						if callerEntity, exists := entities[callerName]; exists {
+							callerEntity.Callees = appendUnique(callerEntity.Callees, methodName)
+						}
+					}
+				}
+			}
+		}
+
+		// 处理函数
+		for _, fn := range source.Functions {
+			if _, exists := entities[fn.Name]; !exists {
+				entities[fn.Name] = &LayeredEntityReferences{
+					EntityName: fn.Name,
+					Type:       "function",
+				}
+			}
+
+			// 添加调用关系（排除自引用）
+			for _, ref := range fn.References {
+				callerName := ref.Caller.Name
+				if callerName != fn.Name { // 排除自引用
+					entities[fn.Name].Callers = appendUnique(entities[fn.Name].Callers, callerName)
+					if callerEntity, exists := entities[callerName]; exists {
+						callerEntity.Callees = appendUnique(callerEntity.Callees, fn.Name)
+					}
+				}
+			}
+		}
+	}
+
+	// 转换为切片
+	result := make([]LayeredEntityReferences, 0, len(entities))
+	for _, entity := range entities {
+		result = append(result, *entity)
+	}
+	return result
+}
+
+// hasExternalReferences 检查实体是否有外部引用
+func (w *FlowchartWriter) hasExternalReferences(entity LayeredEntityReferences) bool {
+	return len(entity.Callers) > 0 || len(entity.Callees) > 0
+}
+
+// GenerateLayeredMarkdown 生成分层的markdown文档
+func (w *FlowchartWriter) GenerateLayeredMarkdown() string {
+	var sb strings.Builder
+	sb.WriteString("# 代码分析报告\n\n")
+
+	// 收集所有实体
+	entities := w.collectAllEntities()
+
+	// 按类型分组
+	structMethods := make(map[string][]LayeredEntityReferences)
+	var structs, functions []LayeredEntityReferences
+
+	for _, entity := range entities {
+		if entity.Type == "method" {
+			if parts := strings.Split(entity.EntityName, "."); len(parts) == 2 {
+				structName := parts[0]
+				structMethods[structName] = append(structMethods[structName], entity)
+			}
+		} else if entity.Type == "struct" {
+			structs = append(structs, entity)
+		} else if entity.Type == "function" {
+			functions = append(functions, entity)
+		}
+	}
+
+	// 生成结构体及其方法的文档
+	for _, st := range structs {
+		sb.WriteString(fmt.Sprintf("## %s (%s)\n\n", st.EntityName, st.Type))
+
+		// 只有在有外部引用时才生成调用关系图
+		if w.hasExternalReferences(st) {
+			context := w.getEntityContext(st, 5)
+			sb.WriteString("### 调用关系\n\n")
+			sb.WriteString("```mermaid\n")
+			sb.WriteString(w.generateContextGraph(context))
+			sb.WriteString("```\n\n")
+		}
+
+		w.writeEntityReferences(&sb, st)
+
+		// 生成该结构体的方法文档
+		if methods := structMethods[st.EntityName]; len(methods) > 0 {
+			for _, method := range methods {
+				sb.WriteString(fmt.Sprintf("### %s\n\n", method.EntityName))
+
+				// 只有在有外部引用时才生成调用关系图
+				if w.hasExternalReferences(method) {
+					context := w.getEntityContext(method, 5)
+					sb.WriteString("#### 调用关系\n\n")
+					sb.WriteString("```mermaid\n")
+					sb.WriteString(w.generateContextGraph(context))
+					sb.WriteString("```\n\n")
+				}
+
+				w.writeEntityReferences(&sb, method)
+			}
+		}
+
+		sb.WriteString("---\n\n")
+	}
+
+	// 生成独立函数的文档
+	if len(functions) > 0 {
+		sb.WriteString("## 独立函数\n\n")
+		for _, fn := range functions {
+			sb.WriteString(fmt.Sprintf("### %s (%s)\n\n", fn.EntityName, fn.Type))
+
+			// 只有在有外部引用时才生成调用关系图
+			if w.hasExternalReferences(fn) {
+				context := w.getEntityContext(fn, 5)
+				sb.WriteString("#### 调用关系\n\n")
+				sb.WriteString("```mermaid\n")
+				sb.WriteString(w.generateContextGraph(context))
+				sb.WriteString("```\n\n")
+			}
+
+			w.writeEntityReferences(&sb, fn)
+			sb.WriteString("---\n\n")
+		}
+	}
+
+	return sb.String()
+}
+
+// writeEntityReferences 写入实体的引用信息
+func (w *FlowchartWriter) writeEntityReferences(sb *strings.Builder, entity LayeredEntityReferences) {
+	if len(entity.Callers) > 0 {
+		sb.WriteString("#### 调用者\n\n")
+		for _, caller := range entity.Callers {
+			sb.WriteString(fmt.Sprintf("- %s\n", caller))
+		}
+		sb.WriteString("\n")
+	}
+
+	if len(entity.Callees) > 0 {
+		sb.WriteString("#### 被调用者\n\n")
+		for _, callee := range entity.Callees {
+			sb.WriteString(fmt.Sprintf("- %s\n", callee))
+		}
+		sb.WriteString("\n")
+	}
+}
+
+// getEntityContext 获取实体的上下文（上下n层关系）
+func (w *FlowchartWriter) getEntityContext(entity LayeredEntityReferences, depth int) map[string]LayeredEntityReferences {
+	context := make(map[string]LayeredEntityReferences)
+	context[entity.EntityName] = entity
+
+	// 向上遍历调用者
+	w.traverseUp(entity.EntityName, entity.Callers, context, depth)
+	// 向下遍历被调用者
+	w.traverseDown(entity.EntityName, entity.Callees, context, depth)
+
+	return context
+}
+
+// traverseUp 向上遍历调用关系
+func (w *FlowchartWriter) traverseUp(currentName string, callers []string, context map[string]LayeredEntityReferences, remainingDepth int) {
+	if remainingDepth <= 0 || len(callers) == 0 {
+		return
+	}
+
+	for _, caller := range callers {
+		if _, exists := context[caller]; exists {
+			continue
+		}
+
+		// 获取调用者信息
+		for _, entity := range w.collectAllEntities() {
+			if entity.EntityName == caller {
+				context[caller] = entity
+				w.traverseUp(caller, entity.Callers, context, remainingDepth-1)
+				break
+			}
+		}
+	}
+}
+
+// traverseDown 向下遍历调用关系
+func (w *FlowchartWriter) traverseDown(currentName string, callees []string, context map[string]LayeredEntityReferences, remainingDepth int) {
+	if remainingDepth <= 0 || len(callees) == 0 {
+		return
+	}
+
+	for _, callee := range callees {
+		if _, exists := context[callee]; exists {
+			continue
+		}
+
+		// 获取被调用者信息
+		for _, entity := range w.collectAllEntities() {
+			if entity.EntityName == callee {
+				context[callee] = entity
+				w.traverseDown(callee, entity.Callees, context, remainingDepth-1)
+				break
+			}
+		}
+	}
+}
+
+// generateContextGraph 生成上下文关系图
+func (w *FlowchartWriter) generateContextGraph(context map[string]LayeredEntityReferences) string {
+	var sb strings.Builder
+	sb.WriteString("graph TD\n")
+
+	// 添加节点
+	processedNodes := make(map[string]bool)
+	for name, entity := range context {
+		if !processedNodes[name] {
+			processedNodes[name] = true
+			nodeStyle := w.getNodeStyle(entity.Type)
+			sb.WriteString(fmt.Sprintf("    %s%s\n", sanitizeID(name), nodeStyle))
+		}
+	}
+
+	// 添加连接
+	processedEdges := make(map[string]bool)
+	for name, entity := range context {
+		for _, callee := range entity.Callees {
+			if _, exists := context[callee]; exists {
+				edgeKey := fmt.Sprintf("%s->%s", name, callee)
+				if !processedEdges[edgeKey] {
+					processedEdges[edgeKey] = true
+					sb.WriteString(fmt.Sprintf("    %s --> %s\n", sanitizeID(name), sanitizeID(callee)))
+				}
+			}
+		}
+	}
+
+	return sb.String()
+}
+
+// getNodeStyle 根据实体类型返回节点样式
+func (w *FlowchartWriter) getNodeStyle(entityType string) string {
+	switch entityType {
+	case "struct":
+		return "[" + entityType + "]"
+	case "method":
+		return "(" + entityType + ")"
+	case "function":
+		return "{" + entityType + "}"
+	default:
+		return "[" + entityType + "]"
+	}
+}
+
+// appendUnique 添加唯一元素到切片
+func appendUnique(slice []string, element string) []string {
+	for _, e := range slice {
+		if e == element {
+			return slice
+		}
+	}
+	return append(slice, element)
 }

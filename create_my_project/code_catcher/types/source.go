@@ -1,4 +1,4 @@
-package codecatcher
+package types
 
 // Reference 引用信息
 type Reference struct {
@@ -34,6 +34,7 @@ type Entity struct {
 	Data     any        // 实体具体数据（Interface/Struct/Field/Method/Function）
 }
 
+// Source 源代码分析结果
 type Source struct {
 	FilePath    string      // 文件路径
 	PackageName string      // 包名

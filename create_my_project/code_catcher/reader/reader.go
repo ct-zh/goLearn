@@ -9,20 +9,21 @@ import (
 	"path/filepath"
 	"strings"
 
-	codecatcher "github.com/ct-zh/goLearn/create_my_project/code_catcher"
+	"github.com/ct-zh/goLearn/create_my_project/code_catcher/types"
 )
 
+// Reader 代码读取器
 type Reader struct {
 	rootPath string
-	sources  map[string]*codecatcher.Source // key: 文件路径
-	fset     *token.FileSet                 // 用于获取位置信息
+	sources  map[string]*types.Source // key: 文件路径
+	fset     *token.FileSet           // 用于获取位置信息
 }
 
 // NewReader 创建新的Reader实例
 func NewReader(rootPath string) *Reader {
 	return &Reader{
 		rootPath: rootPath,
-		sources:  make(map[string]*codecatcher.Source),
+		sources:  make(map[string]*types.Source),
 		fset:     token.NewFileSet(),
 	}
 }
@@ -76,7 +77,7 @@ func (r *Reader) ReadGoFile(filePath string) error {
 	}
 
 	// 创建Source对象
-	source := &codecatcher.Source{
+	source := &types.Source{
 		FilePath:    filePath,
 		PackageName: file.Name.Name,
 		CodeText:    content,
@@ -131,7 +132,7 @@ func (r *Reader) analyzeReferences(filePath string) error {
 		return err
 	}
 
-	var currentEntity *codecatcher.Entity // 当前正在处理的实体
+	var currentEntity *types.Entity // 当前正在处理的实体
 
 	// 遍历AST查找引用
 	ast.Inspect(file, func(n ast.Node) bool {
@@ -140,15 +141,15 @@ func (r *Reader) analyzeReferences(filePath string) error {
 			// 更新当前实体为函数或方法
 			if x.Recv == nil {
 				// 函数
-				currentEntity = &codecatcher.Entity{
-					Type:     codecatcher.EntityTypeFunction,
+				currentEntity = &types.Entity{
+					Type:     types.EntityTypeFunction,
 					Name:     x.Name.Name,
 					FilePath: filePath,
 				}
 			} else {
 				// 方法
-				currentEntity = &codecatcher.Entity{
-					Type:     codecatcher.EntityTypeMethod,
+				currentEntity = &types.Entity{
+					Type:     types.EntityTypeMethod,
 					Name:     x.Name.Name,
 					FilePath: filePath,
 				}
@@ -186,11 +187,11 @@ func (r *Reader) analyzeReferences(filePath string) error {
 }
 
 // handleSelectorExpr 处理选择器表达式
-func (r *Reader) handleSelectorExpr(expr *ast.SelectorExpr, filePath string, caller *codecatcher.Entity) {
+func (r *Reader) handleSelectorExpr(expr *ast.SelectorExpr, filePath string, caller *types.Entity) {
 	// 如果父节点是标识符，可能是字段访问
 	if _, ok := expr.X.(*ast.Ident); ok {
 		pos := r.fset.Position(expr.Pos())
-		ref := codecatcher.Reference{
+		ref := types.Reference{
 			FilePath:   filePath,
 			LineNumber: pos.Line,
 			Context:    "field access",
@@ -212,13 +213,13 @@ func (r *Reader) handleSelectorExpr(expr *ast.SelectorExpr, filePath string, cal
 }
 
 // handleIdentifier 处理标识符
-func (r *Reader) handleIdentifier(ident *ast.Ident, filePath string, caller *codecatcher.Entity) {
+func (r *Reader) handleIdentifier(ident *ast.Ident, filePath string, caller *types.Entity) {
 	if ident.Obj == nil {
 		return
 	}
 
 	pos := r.fset.Position(ident.Pos())
-	ref := codecatcher.Reference{
+	ref := types.Reference{
 		FilePath:   filePath,
 		LineNumber: pos.Line,
 		Context:    "identifier",
@@ -249,9 +250,9 @@ func (r *Reader) handleIdentifier(ident *ast.Ident, filePath string, caller *cod
 }
 
 // handleFunctionCall 处理函数调用
-func (r *Reader) handleFunctionCall(call *ast.CallExpr, filePath string, caller *codecatcher.Entity) {
+func (r *Reader) handleFunctionCall(call *ast.CallExpr, filePath string, caller *types.Entity) {
 	pos := r.fset.Position(call.Pos())
-	ref := codecatcher.Reference{
+	ref := types.Reference{
 		FilePath:   filePath,
 		LineNumber: pos.Line,
 		Context:    "function call",
@@ -284,9 +285,9 @@ func (r *Reader) handleFunctionCall(call *ast.CallExpr, filePath string, caller 
 }
 
 // handleTypeAssertion 处理类型断言
-func (r *Reader) handleTypeAssertion(assert *ast.TypeAssertExpr, filePath string, caller *codecatcher.Entity) {
+func (r *Reader) handleTypeAssertion(assert *ast.TypeAssertExpr, filePath string, caller *types.Entity) {
 	pos := r.fset.Position(assert.Pos())
-	ref := codecatcher.Reference{
+	ref := types.Reference{
 		FilePath:   filePath,
 		LineNumber: pos.Line,
 		Context:    "type assertion",
@@ -313,9 +314,9 @@ func (r *Reader) handleTypeAssertion(assert *ast.TypeAssertExpr, filePath string
 }
 
 // handleCompositeLit 处理复合字面量
-func (r *Reader) handleCompositeLit(lit *ast.CompositeLit, filePath string, caller *codecatcher.Entity) {
+func (r *Reader) handleCompositeLit(lit *ast.CompositeLit, filePath string, caller *types.Entity) {
 	pos := r.fset.Position(lit.Pos())
-	ref := codecatcher.Reference{
+	ref := types.Reference{
 		FilePath:   filePath,
 		LineNumber: pos.Line,
 		Context:    "composite literal",
@@ -336,10 +337,10 @@ func (r *Reader) handleCompositeLit(lit *ast.CompositeLit, filePath string, call
 }
 
 // parseInterface 解析接口定义
-func (r *Reader) parseInterface(name string, iface *ast.InterfaceType) codecatcher.Interface {
-	result := codecatcher.Interface{
+func (r *Reader) parseInterface(name string, iface *ast.InterfaceType) types.Interface {
+	result := types.Interface{
 		Name:       name,
-		References: make(map[codecatcher.ReferenceKey]codecatcher.Reference),
+		References: make(map[types.ReferenceKey]types.Reference),
 	}
 
 	for _, method := range iface.Methods.List {
@@ -352,18 +353,18 @@ func (r *Reader) parseInterface(name string, iface *ast.InterfaceType) codecatch
 }
 
 // parseStruct 解析结构体定义
-func (r *Reader) parseStruct(name string, st *ast.StructType) codecatcher.Struct {
-	result := codecatcher.Struct{
+func (r *Reader) parseStruct(name string, st *ast.StructType) types.Struct {
+	result := types.Struct{
 		Name:       name,
-		References: make(map[codecatcher.ReferenceKey]codecatcher.Reference),
+		References: make(map[types.ReferenceKey]types.Reference),
 	}
 
 	for _, field := range st.Fields.List {
 		if len(field.Names) > 0 {
-			result.Fields = append(result.Fields, codecatcher.Field{
+			result.Fields = append(result.Fields, types.Field{
 				Name:       field.Names[0].Name,
 				Type:       r.typeToString(field.Type),
-				References: make(map[codecatcher.ReferenceKey]codecatcher.Reference),
+				References: make(map[types.ReferenceKey]types.Reference),
 			})
 		}
 	}
@@ -372,18 +373,18 @@ func (r *Reader) parseStruct(name string, st *ast.StructType) codecatcher.Struct
 }
 
 // parseFunction 解析函数定义
-func (r *Reader) parseFunction(fn *ast.FuncDecl) codecatcher.Function {
-	return codecatcher.Function{
+func (r *Reader) parseFunction(fn *ast.FuncDecl) types.Function {
+	return types.Function{
 		Name:       fn.Name.Name,
 		Params:     r.parseFieldList(fn.Type.Params),
 		Results:    r.parseFieldList(fn.Type.Results),
 		IsExported: ast.IsExported(fn.Name.Name),
-		References: make(map[codecatcher.ReferenceKey]codecatcher.Reference),
+		References: make(map[types.ReferenceKey]types.Reference),
 	}
 }
 
 // parseMethod 解析方法并添加到对应的结构体中
-func (r *Reader) parseMethod(fn *ast.FuncDecl, source *codecatcher.Source) {
+func (r *Reader) parseMethod(fn *ast.FuncDecl, source *types.Source) {
 	if fn.Recv == nil || len(fn.Recv.List) == 0 {
 		return
 	}
@@ -401,18 +402,18 @@ func (r *Reader) parseMethod(fn *ast.FuncDecl, source *codecatcher.Source) {
 }
 
 // parseMethodType 解析方法类型
-func (r *Reader) parseMethodType(name string, ft *ast.FuncType) codecatcher.Method {
-	return codecatcher.Method{
+func (r *Reader) parseMethodType(name string, ft *ast.FuncType) types.Method {
+	return types.Method{
 		Name:       name,
 		Params:     r.parseFieldList(ft.Params),
 		Results:    r.parseFieldList(ft.Results),
-		References: make(map[codecatcher.ReferenceKey]codecatcher.Reference),
+		References: make(map[types.ReferenceKey]types.Reference),
 	}
 }
 
 // parseFieldList 解析字段列表
-func (r *Reader) parseFieldList(fields *ast.FieldList) []codecatcher.Field {
-	var result []codecatcher.Field
+func (r *Reader) parseFieldList(fields *ast.FieldList) []types.Field {
+	var result []types.Field
 	if fields == nil {
 		return result
 	}
@@ -421,17 +422,17 @@ func (r *Reader) parseFieldList(fields *ast.FieldList) []codecatcher.Field {
 		fieldType := r.typeToString(field.Type)
 		if len(field.Names) > 0 {
 			for _, name := range field.Names {
-				result = append(result, codecatcher.Field{
+				result = append(result, types.Field{
 					Name:       name.Name,
 					Type:       fieldType,
-					References: make(map[codecatcher.ReferenceKey]codecatcher.Reference),
+					References: make(map[types.ReferenceKey]types.Reference),
 				})
 			}
 		} else {
 			// 匿名字段或者返回值没有命名
-			result = append(result, codecatcher.Field{
+			result = append(result, types.Field{
 				Type:       fieldType,
-				References: make(map[codecatcher.ReferenceKey]codecatcher.Reference),
+				References: make(map[types.ReferenceKey]types.Reference),
 			})
 		}
 	}
@@ -459,8 +460,8 @@ func (r *Reader) typeToString(expr ast.Expr) string {
 }
 
 // addReference 添加引用信息
-func (r *Reader) addReference(refs map[codecatcher.ReferenceKey]codecatcher.Reference, ref codecatcher.Reference) {
-	key := codecatcher.ReferenceKey{
+func (r *Reader) addReference(refs map[types.ReferenceKey]types.Reference, ref types.Reference) {
+	key := types.ReferenceKey{
 		FilePath:   ref.FilePath,
 		LineNumber: ref.LineNumber,
 		CallerName: ref.Caller.Name,
@@ -469,6 +470,6 @@ func (r *Reader) addReference(refs map[codecatcher.ReferenceKey]codecatcher.Refe
 }
 
 // GetSources 获取所有解析的源文件
-func (r *Reader) GetSources() map[string]*codecatcher.Source {
+func (r *Reader) GetSources() map[string]*types.Source {
 	return r.sources
 }

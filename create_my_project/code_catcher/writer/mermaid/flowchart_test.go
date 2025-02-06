@@ -4,13 +4,13 @@ import (
 	"strings"
 	"testing"
 
-	codecatcher "github.com/ct-zh/goLearn/create_my_project/code_catcher"
+	"github.com/ct-zh/goLearn/create_my_project/code_catcher/types"
 	"github.com/stretchr/testify/assert"
 )
 
 // createTestSource 创建测试用的Source对象
-func createTestSource(pkg string, imports []string) *codecatcher.Source {
-	return &codecatcher.Source{
+func createTestSource(pkg string, imports []string) *types.Source {
+	return &types.Source{
 		PackageName: pkg,
 		Imports:     imports,
 	}
@@ -18,7 +18,7 @@ func createTestSource(pkg string, imports []string) *codecatcher.Source {
 
 func TestGeneratePackageDependencies(t *testing.T) {
 	// 创建测试数据
-	sources := map[string]*codecatcher.Source{
+	sources := map[string]*types.Source{
 		"main.go": createTestSource("main", []string{
 			"fmt",
 			"strings",
@@ -45,21 +45,21 @@ func TestGeneratePackageDependencies(t *testing.T) {
 
 func TestGenerateEntityReferences(t *testing.T) {
 	// 创建测试数据
-	source := &codecatcher.Source{
+	source := &types.Source{
 		PackageName: "test",
-		Structs: []codecatcher.Struct{
+		Structs: []types.Struct{
 			{
 				Name: "TestStruct",
-				Methods: []codecatcher.Method{
+				Methods: []types.Method{
 					{
 						Name: "TestMethod",
-						References: map[codecatcher.ReferenceKey]codecatcher.Reference{
+						References: map[types.ReferenceKey]types.Reference{
 							{FilePath: "main.go", LineNumber: 10, CallerName: "main"}: {
 								FilePath:   "main.go",
 								LineNumber: 10,
 								Context:    "function call",
-								Caller: &codecatcher.Entity{
-									Type: codecatcher.EntityTypeFunction,
+								Caller: &types.Entity{
+									Type: types.EntityTypeFunction,
 									Name: "main",
 								},
 							},
@@ -68,16 +68,16 @@ func TestGenerateEntityReferences(t *testing.T) {
 				},
 			},
 		},
-		Functions: []codecatcher.Function{
+		Functions: []types.Function{
 			{
 				Name: "HelperFunc",
-				References: map[codecatcher.ReferenceKey]codecatcher.Reference{
+				References: map[types.ReferenceKey]types.Reference{
 					{FilePath: "main.go", LineNumber: 15, CallerName: "TestMethod"}: {
 						FilePath:   "main.go",
 						LineNumber: 15,
 						Context:    "function call",
-						Caller: &codecatcher.Entity{
-							Type: codecatcher.EntityTypeMethod,
+						Caller: &types.Entity{
+							Type: types.EntityTypeMethod,
 							Name: "TestMethod",
 						},
 					},
@@ -86,7 +86,7 @@ func TestGenerateEntityReferences(t *testing.T) {
 		},
 	}
 
-	sources := map[string]*codecatcher.Source{
+	sources := map[string]*types.Source{
 		"test.go": source,
 	}
 
@@ -104,28 +104,28 @@ func TestGenerateEntityReferences(t *testing.T) {
 
 func TestGenerateInterfaceImplementations(t *testing.T) {
 	// 创建测试数据
-	source := &codecatcher.Source{
+	source := &types.Source{
 		PackageName: "test",
-		Interfaces: []codecatcher.Interface{
+		Interfaces: []types.Interface{
 			{
 				Name: "TestInterface",
-				Methods: []codecatcher.Method{
+				Methods: []types.Method{
 					{Name: "TestMethod"},
 				},
 			},
 		},
-		Structs: []codecatcher.Struct{
+		Structs: []types.Struct{
 			{
 				Name:       "TestStruct",
 				Implements: []string{"TestInterface"},
-				Methods: []codecatcher.Method{
+				Methods: []types.Method{
 					{Name: "TestMethod"},
 				},
 			},
 		},
 	}
 
-	sources := map[string]*codecatcher.Source{
+	sources := map[string]*types.Source{
 		"test.go": source,
 	}
 
@@ -189,7 +189,7 @@ func TestContainsInterface(t *testing.T) {
 }
 
 func TestFlowchartWriterWithEmptySources(t *testing.T) {
-	writer := NewFlowchartWriter(make(map[string]*codecatcher.Source))
+	writer := NewFlowchartWriter(make(map[string]*types.Source))
 
 	// 测试包依赖关系图
 	pkgResult := writer.GeneratePackageDependencies()
@@ -222,28 +222,28 @@ func TestFlowchartWriterWithNilSources(t *testing.T) {
 
 func TestMermaidSyntax(t *testing.T) {
 	// 创建一个包含所有类型节点的复杂测试用例
-	source := &codecatcher.Source{
+	source := &types.Source{
 		PackageName: "test",
 		Imports:     []string{"fmt", "strings"},
-		Interfaces: []codecatcher.Interface{
+		Interfaces: []types.Interface{
 			{
 				Name: "TestInterface",
-				Methods: []codecatcher.Method{
+				Methods: []types.Method{
 					{Name: "TestMethod"},
 				},
 			},
 		},
-		Structs: []codecatcher.Struct{
+		Structs: []types.Struct{
 			{
 				Name:       "TestStruct",
 				Implements: []string{"TestInterface"},
-				Methods: []codecatcher.Method{
+				Methods: []types.Method{
 					{
 						Name: "TestMethod",
-						References: map[codecatcher.ReferenceKey]codecatcher.Reference{
+						References: map[types.ReferenceKey]types.Reference{
 							{FilePath: "test.go", LineNumber: 10, CallerName: "main"}: {
 								Context: "function call",
-								Caller: &codecatcher.Entity{
+								Caller: &types.Entity{
 									Name: "main",
 								},
 							},
@@ -254,7 +254,7 @@ func TestMermaidSyntax(t *testing.T) {
 		},
 	}
 
-	sources := map[string]*codecatcher.Source{
+	sources := map[string]*types.Source{
 		"test.go": source,
 	}
 
