@@ -266,7 +266,8 @@ func (r *Reader) handleFunctionCall(call *ast.CallExpr, filePath string, caller 
 		for _, source := range r.sources {
 			for i := range source.Functions {
 				if source.Functions[i].Name == fun.Name {
-					r.addReference(source.Functions[i].References, ref)
+					// 在调用者的引用列表中添加被调用函数
+					r.addReference(caller.Data.(types.Function).References, ref)
 				}
 			}
 		}
@@ -276,7 +277,8 @@ func (r *Reader) handleFunctionCall(call *ast.CallExpr, filePath string, caller 
 			for i := range source.Structs {
 				for j := range source.Structs[i].Methods {
 					if source.Structs[i].Methods[j].Name == fun.Sel.Name {
-						r.addReference(source.Structs[i].Methods[j].References, ref)
+						// 在调用者的引用列表中添加被调用方法
+						r.addReference(caller.Data.(types.Function).References, ref)
 					}
 				}
 			}
@@ -472,4 +474,159 @@ func (r *Reader) addReference(refs map[types.ReferenceKey]types.Reference, ref t
 // GetSources 获取所有解析的源文件
 func (r *Reader) GetSources() map[string]*types.Source {
 	return r.sources
+}
+
+// BuildCallTree 构建调用树
+func (r *Reader) BuildCallTree() *types.CallTree {
+	tree := &types.CallTree{
+		NodeIndex: make(map[string]*types.CallNode),
+	}
+
+	// 首先找到所有入口函数（main函数或者测试函数）
+	var entryPoints []*types.Entity
+	for _, source := range r.sources {
+		for _, fn := range source.Functions {
+			if fn.Name == "main" || strings.HasPrefix(fn.Name, "Test") {
+				entity := &types.Entity{
+					Type:     types.EntityTypeFunction,
+					Name:     fn.Name,
+					FilePath: source.FilePath,
+					Data:     fn,
+				}
+				entryPoints = append(entryPoints, entity)
+			}
+		}
+	}
+
+	// 如果没有找到入口点，使用所有导出的函数作为入口点
+	if len(entryPoints) == 0 {
+		for _, source := range r.sources {
+			for _, fn := range source.Functions {
+				if fn.IsExported {
+					entity := &types.Entity{
+						Type:     types.EntityTypeFunction,
+						Name:     fn.Name,
+						FilePath: source.FilePath,
+						Data:     fn,
+					}
+					entryPoints = append(entryPoints, entity)
+				}
+			}
+		}
+	}
+
+	// 创建根节点
+	tree.Root = &types.CallNode{
+		Children: make(map[string]*types.CallNode),
+	}
+
+	// 从每个入口点开始构建调用树
+	for _, entry := range entryPoints {
+		node := &types.CallNode{
+			Entity:   entry,
+			Children: make(map[string]*types.CallNode),
+		}
+		tree.Root.Children[entry.Name] = node
+		tree.NodeIndex[entry.Name] = node
+		r.buildCallTreeNode(node, tree, make(map[string]bool))
+	}
+
+	return tree
+}
+
+// buildCallTreeNode 递归构建调用树节点
+func (r *Reader) buildCallTreeNode(node *types.CallNode, tree *types.CallTree, visited map[string]bool) {
+	if visited[node.Entity.Name] {
+		return // 避免循环调用
+	}
+	visited[node.Entity.Name] = true
+
+	// 获取当前节点的引用信息
+	var refs map[types.ReferenceKey]types.Reference
+	switch node.Entity.Type {
+	case types.EntityTypeFunction:
+		if fn, ok := node.Entity.Data.(types.Function); ok {
+			refs = fn.References
+		}
+	case types.EntityTypeMethod:
+		if method, ok := node.Entity.Data.(types.Method); ok {
+			refs = method.References
+		}
+	}
+
+	// 遍历所有源文件查找被调用的实体
+	for _, source := range r.sources {
+		// 检查函数
+		for _, fn := range source.Functions {
+			// 检查当前节点是否调用了这个函数
+			for _, ref := range refs {
+				if ref.Caller.Name == fn.Name {
+					if fn.Name == node.Entity.Name {
+						continue // 跳过自引用
+					}
+
+					// 如果节点已经存在于索引中，直接使用
+					if existingNode, ok := tree.NodeIndex[fn.Name]; ok {
+						node.Children[fn.Name] = existingNode
+						continue
+					}
+
+					// 创建新节点
+					childNode := &types.CallNode{
+						Entity: &types.Entity{
+							Type:     types.EntityTypeFunction,
+							Name:     fn.Name,
+							FilePath: source.FilePath,
+							Data:     fn,
+						},
+						Children: make(map[string]*types.CallNode),
+					}
+					node.Children[fn.Name] = childNode
+					tree.NodeIndex[fn.Name] = childNode
+
+					// 递归构建子节点
+					r.buildCallTreeNode(childNode, tree, visited)
+				}
+			}
+		}
+
+		// 检查结构体方法
+		for _, st := range source.Structs {
+			for _, method := range st.Methods {
+				// 检查当前节点是否调用了这个方法
+				for _, ref := range refs {
+					if ref.Caller.Name == method.Name {
+						methodName := method.Name
+						if methodName == node.Entity.Name {
+							continue // 跳过自引用
+						}
+
+						// 如果节点已经存在于索引中，直接使用
+						if existingNode, ok := tree.NodeIndex[methodName]; ok {
+							node.Children[methodName] = existingNode
+							continue
+						}
+
+						// 创建新节点
+						childNode := &types.CallNode{
+							Entity: &types.Entity{
+								Type:     types.EntityTypeMethod,
+								Name:     methodName,
+								FilePath: source.FilePath,
+								Data:     method,
+							},
+							Children: make(map[string]*types.CallNode),
+						}
+						node.Children[methodName] = childNode
+						tree.NodeIndex[methodName] = childNode
+
+						// 递归构建子节点
+						r.buildCallTreeNode(childNode, tree, visited)
+					}
+				}
+			}
+		}
+	}
+
+	delete(visited, node.Entity.Name) // 回溯时移除访问标记
 }

@@ -5,7 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	codecatcher "github.com/ct-zh/goLearn/create_my_project/code_catcher"
+	"github.com/ct-zh/goLearn/create_my_project/code_catcher/types"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -92,7 +93,7 @@ func main() {
 	assert.Equal(t, 1, len(methodRefs))
 
 	// 获取引用信息
-	var ref codecatcher.Reference
+	var ref types.Reference
 	for _, r := range methodRefs {
 		ref = r
 		break
@@ -261,4 +262,124 @@ func TestReader_EmptyProject(t *testing.T) {
 
 	sources := reader.GetSources()
 	assert.Equal(t, 0, len(sources), "空项目不应该有任何源文件")
+}
+
+func TestReader_BuildCallTree(t *testing.T) {
+	// 创建临时目录
+	tmpDir, err := os.MkdirTemp("", "reader_test")
+	if err != nil {
+		t.Fatalf("无法创建临时目录: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// 创建测试文件
+	createTestFile(t, tmpDir, "main.go", `
+package main
+
+func main() {
+	doSomething()
+	processData()
+}
+
+func doSomething() {
+	helper()
+}
+
+func helper() {
+	// 一些辅助操作
+}
+
+func processData() {
+	// 处理数据
+}
+`)
+
+	// 创建Reader实例并读取项目
+	reader := NewReader(tmpDir)
+	err = reader.ReadProject()
+	assert.NoError(t, err)
+
+	// 构建调用树
+	tree := reader.BuildCallTree()
+	assert.NotNil(t, tree)
+	assert.NotNil(t, tree.Root)
+
+	// 验证根节点下有main函数
+	mainNode, exists := tree.Root.Children["main"]
+	assert.True(t, exists, "main函数应该存在于调用树中")
+	assert.Equal(t, "main", mainNode.Entity.Name)
+	assert.Equal(t, types.EntityTypeFunction, mainNode.Entity.Type)
+
+	// 验证main函数的调用关系
+	assert.Equal(t, 2, len(mainNode.Children), "main函数应该有两个子节点")
+	_, hasDoSomething := mainNode.Children["doSomething"]
+	assert.True(t, hasDoSomething, "doSomething函数应该被main调用")
+	_, hasProcessData := mainNode.Children["processData"]
+	assert.True(t, hasProcessData, "processData函数应该被main调用")
+
+	// 验证doSomething函数的调用关系
+	doSomethingNode := mainNode.Children["doSomething"]
+	assert.Equal(t, 1, len(doSomethingNode.Children), "doSomething函数应该有一个子节点")
+	_, hasHelper := doSomethingNode.Children["helper"]
+	assert.True(t, hasHelper, "helper函数应该被doSomething调用")
+
+	// 验证NodeIndex是否正确索引了所有节点
+	assert.Equal(t, 4, len(tree.NodeIndex), "应该有4个函数节点被索引")
+	_, hasMainIndex := tree.NodeIndex["main"]
+	assert.True(t, hasMainIndex, "main函数应该在索引中")
+	_, hasDoSomethingIndex := tree.NodeIndex["doSomething"]
+	assert.True(t, hasDoSomethingIndex, "doSomething函数应该在索引中")
+	_, hasHelperIndex := tree.NodeIndex["helper"]
+	assert.True(t, hasHelperIndex, "helper函数应该在索引中")
+	_, hasProcessDataIndex := tree.NodeIndex["processData"]
+	assert.True(t, hasProcessDataIndex, "processData函数应该在索引中")
+}
+
+func TestReader_BuildCallTree_WithMethods(t *testing.T) {
+	// 创建临时目录
+	tmpDir, err := os.MkdirTemp("", "reader_test")
+	if err != nil {
+		t.Fatalf("无法创建临时目录: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	// 创建测试文件
+	createTestFile(t, tmpDir, "main.go", `
+package main
+
+type Handler struct{}
+
+func (h *Handler) Handle() {
+	h.process()
+}
+
+func (h *Handler) process() {
+	// 处理逻辑
+}
+
+func main() {
+	h := &Handler{}
+	h.Handle()
+}
+`)
+
+	// 创建Reader实例并读取项目
+	reader := NewReader(tmpDir)
+	err = reader.ReadProject()
+	assert.NoError(t, err)
+
+	// 构建调用树
+	tree := reader.BuildCallTree()
+	assert.NotNil(t, tree)
+
+	// 验证main函数调用Handle方法
+	mainNode := tree.NodeIndex["main"]
+	assert.NotNil(t, mainNode)
+	handleNode, exists := mainNode.Children["Handle"]
+	assert.True(t, exists, "Handle方法应该被main调用")
+
+	// 验证Handle方法调用process方法
+	assert.NotNil(t, handleNode)
+	_, hasProcess := handleNode.Children["process"]
+	assert.True(t, hasProcess, "process方法应该被Handle调用")
 }
