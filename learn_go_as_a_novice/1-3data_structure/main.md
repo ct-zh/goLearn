@@ -3,20 +3,33 @@
 ## 内置数据结构一览
 大致先看一个go语言的内置数据结构，列表如下，参考go语言版本为1.13：
 
-| package   | data strcuture                                         |
-| :-------- | :------------------------------------------------------ |
+| package   | data strcuture                                              |
+| :-------- | :---------------------------------------------------------- |
 | runtime   | channel, timer, semaphore, map, iface, eface, slice, string |
-| sync      | mutex, cond, pool, once, map, waitgroup                |
-| container | heap, list, ring                                       |
-| netpoll   | netpoll related                                        |
-| memory    | allocation related, gc related                         |
-| os        | os related                                             |
-| context   | context                                                |
+| sync      | mutex, cond, pool, once, map, waitgroup                     |
+| container | heap, list, ring                                            |
+| netpoll   | netpoll related                                             |
+| memory    | allocation related, gc related                              |
+| os        | os related                                                  |
+| context   | context                                                     |
+
+- 我们常接触的一般是runtime里面相关的数据结构，其中semaphore是信号量，iface与eface是interface底层相关的数据结构；
+- sync通常用于并发加锁；
+- container里的都是几个常见的基本数据结构，用来构成其他数据结构的底层类型；
+- netpoll与os放在后面的网络编程中讲解;
+- context是最常用的一个结构，用来传递上下文；
+
+## Channel
 
 
-我们常接触的一般是runtime里面相关的数据结构，其中semaphore是信号量，iface与eface是interface底层相关的数据结构。
+## Timer
 
 
-## channel
+
+## Map
+
+
+## Context
+
 
 

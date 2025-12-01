@@ -1,3 +1,12 @@
+
+## Channel简介
+
+### Channel基础
+
+
+
+
+
 ## channel
 
 > 以下代码 see [代码参考](./ch/main.go) ; 源码分析基于go1.20
