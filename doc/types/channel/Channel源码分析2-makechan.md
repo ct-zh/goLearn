@@ -1,17 +1,10 @@
 
-## Channel简介
+经过前面的复习，你对channel的用法与特性应该已经了如指掌了。现在我们开始探究go语言中channel的源代码实现。当前文章的源码分析基于go版本为1.24。
 
-### Channel基础
+## channel的基本结构
 
+### 通过dlv找到channel的入口
 
-
-
-
-## channel
-
-> 以下代码 see [代码参考](./ch/main.go) ; 源码分析基于go1.20
-
-### channel的基本结构
 为了找到channel创建的入口, 我们使用dlv debug下面代码:
 
 ```go
@@ -20,24 +13,39 @@ ch1 := make(chan int)
 ch2 := make(chan int, 3)
 ```
 
-使用`disass`  命令阅读汇编代码:
+> dlv的用法可以参考 [源码调试](https://github.com/ct-zh/goLearn/blob/master/doc/01basic/%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95.md)
+
+使用`disass`  命令可以看到以上代码对应的汇编代码:
 
 ```go
+// 对应：ch1 := make(chan int)
 main.go:6   lea rax, ptr [rip+0x77f3]
 main.go:6   xor ebx, ebx
-main.go:6   call $runtime.makechan    // <- 在这里调用了makechan函数
-main.go:6   mov qword ptr [rsp+0x40], rax // 将 RAX 寄存器中的值(即刚刚创建的 channel 的地址）存储到栈顶指针（RSP）的偏移量为 0x40 的位置上。
+main.go:6   call $runtime.makechan
+main.go:6   mov qword ptr [rsp+0x40], rax 
 
+// 对应：ch2 := make(chan int, 3)
 main.go:7   lea rax, ptr [rip+0x77e0]
-main.go:7   mov ebx, 0x3				// 立即数 0x3（十进制为 3）移动到 EBX 寄存器中。这个值代表了创建 channel 时的缓冲区大小。
-main.go:7   call $runtime.makechan  // <- 在这里调用了makechan函数
-main.go:7   mov qword ptr [rsp+0x38], rax // 将 RAX 寄存器中的值（即刚刚创建的 channel 的地址）存储到栈顶指针（RSP）的偏移量为 0x38 的位置上。
+main.go:7   mov ebx, 0x3				
+main.go:7   call $runtime.makechan
+main.go:7   mov qword ptr [rsp+0x38], rax 
 
 ```
 
-`buffer channel` 和 `unbuffer channel` 都是通过`runtime.makechan`函数来初始化channel
 
-在Go源码中搜索runtime.makechan函数, 可以得到其声明为:`func makechan(t *chantype, size int) *hchan`, 返回的hchan结构为:
+
+
+
+
+
+
+由汇编代码可知，`buffer channel` 和 `unbuffer channel` 都是通过`runtime.makechan`函数来初始化channel。
+
+在源码中搜索`runtime`包的`makechan`函数, 可以得到其声明为:`func makechan(t *chantype, size int) *hchan`，我们先看它的参数：
+
+
+
+
 
 ```go
 type hchan struct {

@@ -14,7 +14,7 @@
 
 
 ## channel
-[源码分析见](channel.md)
+[源码分析见](doc/runtime/channel/channel.md)
 
 ### channel经验谈
 |操作|空值|非空已关闭|非空未关闭|
