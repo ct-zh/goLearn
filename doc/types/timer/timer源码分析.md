@@ -1,3 +1,58 @@
+# timer源码分析
+
+我们先回顾一下timer的基本用法。
+
+## timer 使用方法回顾
+
+timer是go语言内置的一个计时器，用于在未来某时刻触发某个事件。它内部存在一个`channel`，当定时器触发时会往`channel`发送新消息。 
+
+一般有以下三种初始化方法：
+
+### timer初始化
+
+**NewTimer - 创建可控制的定时器**
+
+```go
+// 创建一个 2 秒后触发的定时器
+timer := time.NewTimer(2 * time.Second)
+
+// 阻塞等待定时器触发
+<-timer.C
+fmt.Println("Timer expired")
+```
+
+**After - 简单延迟（一次性）**
+
+```go
+// 等待 1 秒（不需要手动管理 Timer）
+<-time.After(1 * time.Second)
+fmt.Println("1 second passed")
+
+// 常用于 select 超时
+select {
+case msg := <-ch:
+    fmt.Println("Received:", msg)
+case <-time.After(5 * time.Second):
+    fmt.Println("Timeout!")
+}
+```
+
+**AfterFunc - 延迟执行函数**
+```go
+// 2 秒后在新的 goroutine 中执行函数
+timer := time.AfterFunc(2 * time.Second, func() {
+    fmt.Println("Function executed after delay")
+})
+
+// 可以取消
+timer.Stop()
+```
+
+
+### 
+
+
+
 ## timer
 
 timer基本结构为一个小顶四叉堆, 离当前时间最近的时间肯定是在堆顶的. 

@@ -1,5 +1,5 @@
 
-经过前面的复习，你对channel的用法与特性应该已经了如指掌了。现在我们开始探究go语言中channel的源代码实现。当前文章的源码分析基于go版本为1.24。
+经过前面的复习，相信你对channel的用法与特性应该已经了如指掌了。现在就让我们开始探究go语言中channel的源代码实现吧。当前文章的源码分析基于go版本为1.24。
 
 ## channel的基本结构
 
@@ -15,7 +15,7 @@ ch2 := make(chan int, 3)
 
 > dlv的用法可以参考 [源码调试](https://github.com/ct-zh/goLearn/blob/master/doc/01basic/%E6%BA%90%E7%A0%81%E8%B0%83%E8%AF%95.md)
 
-使用`disass`  命令可以看到以上代码对应的汇编代码:
+使用`disass`命令可以看到以上代码对应的汇编代码:
 
 ```go
 // 对应：ch1 := make(chan int)
@@ -31,7 +31,6 @@ main.go:7   call $runtime.makechan
 main.go:7   mov qword ptr [rsp+0x38], rax 
 
 ```
-
 
 
 
