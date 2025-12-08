@@ -50,8 +50,9 @@ C语言的函数调用规约都是写在文档中，那么go语言的函数调�
 
 Go语言因为是一个**自举**的语言，拥有自己的编译器（gc）和运行时，因此它可以自己定义一套规则。Go 语言的规约定义在 Go 源码 和 设计文档 中。
 
-- Go ABI 设计文档 :
-	- 这是最权威的定义： [Go Register-based Calling Convention Proposal](https://github.com/golang/proposal/blob/master/design/40724-register-calling.md)
+- Go ABI内部规范，这是最权威的定义 [Go internal ABI specification Go 内部 ABI 规范](https://github.com/golang/go/blob/master/src/cmd/compile/abi-internal.md)
+
+- 基于寄存器的调用约定提案: [Go Register-based Calling Convention Proposal](https://github.com/golang/proposal/blob/master/design/40724-register-calling.md)
 	- 这份设计文档详细解释了为什么要切换到寄存器 ABI，以及具体的寄存器映射规则。
 
 - Go 编译器源码 :
@@ -72,34 +73,196 @@ Go语言因为是一个**自举**的语言，拥有自己的编译器（gc）和
 		- 这是 Go 编译器内部使用的规约，也是现在 Go 代码编译后的默认行为。
 		- 它不稳定，可能会随 Go 版本变化，但性能更高。
 
+
 我们主要研究1.17+的标准，也就是使用寄存器传递参数与返回值。
 
 前置工作已经准备好了，我们开始正式讨论函数调用规约的那几个核心问题：**参数怎么传？返回值怎么传？谁来清理栈？以及寄存器的保护责任。**
 
 ## 函数调用规约之 参数怎么传？
 
-go1.17+为基于寄存器的函数调用规约，分为两种：
+go1.17+为基于寄存器的函数调用规约，对于**整数/指针参数 (Integer Arguments)**，go使用一组固定的整数寄存器来传递整数、指针、布尔值等。
 
-**整数/指针参数 (Integer Arguments)**
+在AMD64 (x86-64) 架构中，整数、指针参数的寄存器顺序是：RAX、RBX、RCX、RDI、RSI、R8、R9、R10、R11（[参考文档](https://github.com/golang/go/blob/master/src/cmd/compile/abi-internal.md#architecture-specifics)）。
 
-使用一组固定的整数寄存器来传递整数、指针、布尔值等。对于 AMD64 (x86-64) 架构，顺序如下：
-- RAX (Arg 0)
-- RBX (Arg 1)
-- RCX (Arg 2)
-- RDI (Arg 3)
-- RSI (Arg 4)
-- R8 (Arg 5)
-- R9 (Arg 6)
-- R10 (Arg 7)
-- R11 (Arg 8)
+你的日常开发平台可能是在M芯片的MacOs上，它是ARM64架构的。在这种情况下使用的寄存器与数量都和AMD64不同。在ARM64架构上，go的整数、指针参数依次使用 R0 到 R15 (共 16 个通用寄存器)。([参考文档](https://github.com/golang/go/blob/master/src/cmd/compile/abi-internal.md#architecture-specifics))
 
-go语言使用的寄存器与C语言不同，C语言在 Linux 下的 System V AMD64 ABI通常使用：RDI, RSI, RDX, RCX, R8, R9
-
-**浮点数参数 (Floating Point Arguments)**
-浮点数使用 XMM 寄存器传递：X0 ~ X14
+在AMD64架构下，**浮点数参数 (Floating Point Arguments)**使用 XMM 寄存器传递：X0 ~ X14。而在ARM64架构下，浮点参数 ：依次使用 F0 到 F15。
 
 **栈溢出 (Stack Spill)**
-如果参数过多，超过了可用寄存器的数量，剩余的参数会依然通过 栈 传递。
+如果参数过多，超过了可用寄存器的数量，剩余的参数会依然通过**栈**传递。
+
+
+### 是否可以验证呢？
+
+当然可以！眼见为实。我们可以通过汇编语言来查看go函数具体调用的寄存器。比如可以写如下代码：
+
+```go
+func add(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11 int) (b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11 int) {
+	return a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11
+}
+
+func main() {
+	// 使用 16 进制方便在汇编/调试器中观察
+	// 预期寄存器分配 (AMD64):
+	// 0x11 -> RAX
+	// 0x22 -> RBX
+	// 0x33 -> RCX
+	// 0x44 -> RDI
+	// 0x55 -> RSI
+	// 0x66 -> R8
+	// 0x77 -> R9
+	// 0x88 -> R10
+	// 0x99 -> R11
+	// 0xAA -> Stack (栈)
+	// 0xBB -> Stack (栈)
+	a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11 := add(
+		0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB,
+	)
+	println(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)
+}
+```
+
+我们有两种方式查看汇编代码，第一种是直接使用`go tool compile`命令：
+```shell
+# -S: 输出汇编代码
+# -N: 禁用优化 (防止代码被优化掉，导致你看不到参数传递)
+# -l: 禁用内联 (强制发生函数调用)
+go tool compile -S -N -l main.go > assembly.s
+```
+
+然后打开生成的 assembly.s 文件（或者直接在终端看输出），搜索 main 函数中调用 add 的部分。你应该能看到类似这样的指令序列（对应 AMD64 架构）：
+
+```
+MOVQ    $17, AX    // 0x11 -> RAX (Arg 0)
+MOVQ    $34, BX    // 0x22 -> RBX (Arg 1)
+MOVQ    $51, CX    // 0x33 -> RCX (Arg 2)
+MOVQ    $68, DI    // 0x44 -> RDI (Arg 3)
+MOVQ    $85, SI    // 0x55 -> RSI (Arg 4)
+MOVQ    $102, R8   // 0x66 -> R8  (Arg 5)
+MOVQ    $119, R9   // 0x77 -> R9  (Arg 6)
+MOVQ    $136, R10  // 0x88 -> R10 (Arg 7)
+MOVQ    $153, R11  // 0x99 -> R11 (Arg 8)
+// 寄存器用完了，剩下的通过栈传递
+MOVQ    $170, (SP) // 0xAA -> Stack (Arg 9)
+MOVQ    $187, 8(SP)// 0xBB -> Stack (Arg 10)
+CALL    "".add(SB)
+```
+
+如果是ARM64架构，可能是这样：
+```
+0x0020 00032 	MOVD	$17, R0
+0x0024 00036 	MOVD	$34, R1
+0x0028 00040 	MOVD	$51, R2
+0x002c 00044 	MOVD	$68, R3
+0x0030 00048 	MOVD	$85, R4
+0x0034 00052 	MOVD	$102, R5
+0x0038 00056 	MOVD	$119, R6
+0x003c 00060 	MOVD	$136, R7
+0x0040 00064 	MOVD	$153, R8
+0x0044 00068 	MOVD	$170, R9
+0x0048 00072 	MOVD	$187, R10
+0x004c 00076 	PCDATA	$1, $0
+0x004c 00076 	CALL	main.add(SB)
+```
+
+或者使用dlv debug，可以动态观察到寄存器的变化：
+```shell
+# 启动调试
+dlv debug main.go
+```
+
+然后在dlv的交互界面：
+```shell
+# 设置断点并运行
+break main.main
+continue
+
+# 使用 next 命令单步执行，直到 add(...) 这一行
+next
+
+# 当执行流即将进入 add 函数时（或者刚好进入 add 函数的第一行），输入
+regs
+# 你会看到具体的寄存器调用
+```
+
+
+### c语言函数参数怎么传？
+
+C语言在AMD64 ABI下，整数或指针类型的参数传递通常使用这几个寄存器：RDI, RSI, RDX, RCX, R8, R9。如果参数超过 6 个，剩下的通过 栈 (Stack) 传递。
+
+浮点数参数 ：前 8 个浮点数使用 XMM0 - XMM7 寄存器。
+
+在 ARM64 的C语言调用规约中，前8个整数参数都是通过寄存器 R0 - R7 (代码中的 w0 - w6 ) 传递的。这比 x86_64 (只用 6 个寄存器) 能通过寄存器传递更多的参数，效率可能略高一点。
+
+#### 官方文档与出处
+这些规约定义在 System V Application Binary Interface 中。
+
+- 文档名称 : System V Application Binary Interface - AMD64 Architecture Processor Supplement
+- 关键章节 : "3.2 Function Calling Sequence"
+- 在线地址 : refspecs.linuxbase.org/elf/x86_64-abi-0.99.pdf
+
+#### 验证实例
+我们可以创建一个简单的 C 文件，然后使用编译器输出汇编代码来验证上述寄存器：
+
+```c
+// test_c_call.c
+// 定义一个接受 6 个以上参数的函数，确保存入寄存器和栈
+int my_c_function(int a, int b, int c, int d, int e, int f, int g) {
+    return a + b + c + d + e + f + g;
+}
+
+int main() {
+    // 调用函数，传入特定数值方便在汇编中查找
+    // 0x11 -> RDI
+    // 0x22 -> RSI
+    // 0x33 -> RDX
+    // 0x44 -> RCX
+    // 0x55 -> R8
+    // 0x66 -> R9
+    // 0x77 -> Stack
+    my_c_function(0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77);
+    return 0;
+}
+```
+
+在终端中运行以下命令（使用 clang 或 gcc ）：
+```shell
+# -S: 生成汇编代码
+# -O0: 关闭优化 (防止代码被优化掉，保持清晰的参数传递过程)
+clang -S -O0 test_c_call.c -o test_c_call.s
+```
+
+打开生成的 .s 文件，找到 main 函数调用 my_c_function 的部分。你会看到类似下面的指令（AT&T 语法）：
+```Assembly
+	.globl	_main
+_main:
+    ...
+    ; 准备参数
+	movl	$119, (%rsp)    ; 0x77 (第7个参数) 放进栈顶 (Stack)
+	movl	$17, %edi       ; 0x11 -> EDI/RDI (第1个参数)
+	movl	$34, %esi       ; 0x22 -> ESI/RSI (第2个参数)
+	movl	$51, %edx       ; 0x33 -> EDX/RDX (第3个参数)
+	movl	$68, %ecx       ; 0x44 -> ECX/RCX (第4个参数)
+	movr	$85, %r8d       ; 0x55 -> R8D/R8  (第5个参数)
+	movr	$102, %r9d      ; 0x66 -> R9D/R9  (第6个参数)
+	callq	_my_c_function
+    ...
+```
+
+如果你的电脑是ARM64架构的，可能看到的是下面的指令：
+```
+; 准备参数 (Parameter Passing)
+mov 	 w0, #17    ; 参数 1 (0x11) -> w0 (对应 x0 寄存器的低32位)
+mov 	 w1, #34    ; 参数 2 (0x22) -> w1
+mov 	 w2, #51    ; 参数 3 (0x33) -> w2
+mov 	 w3, #68    ; 参数 4 (0x44) -> w3
+mov 	 w4, #85    ; 参数 5 (0x55) -> w4
+mov 	 w5, #102   ; 参数 6 (0x66) -> w5
+mov 	 w6, #119   ; 参数 7 (0x77) -> w6
+
+; 函数调用 (Function Call)
+bl 	 _my_c_function ; BL = Branch with Link (跳转并保存返回地址)
+```
 
 
 
@@ -120,7 +283,12 @@ go语言使用的寄存器与C语言不同，C语言在 Linux 下的 System V AM
 3.  **栈溢出**：
     同样，如果返回值过多，装不下所有寄存器，剩余的返回值会通过栈内存传递。这部分空间也是由**调用者 (Caller)** 预先分配好的。
 
-这与 C 语言有很大不同。C 语言通常只通过 `RAX` 返回一个值。如果需要返回结构体或多个值，通常需要隐式地传递一个指针，或者由调用者分配内存。Go 的寄存器规约使得多返回值非常高效。
+
+### C语言函数返回值怎么传？
+
+C语言与go语言有很大不同，因为C语言只支持一个返回值。
+
+C语言通常只通过 `RAX` 返回一个值 （浮点数则是通过XMM0寄存器）。如果需要返回结构体或多个值，通常需要隐式地传递一个指针，或者由调用者分配内存。Go 的寄存器规约使得多返回值非常高效。
 
 
 
